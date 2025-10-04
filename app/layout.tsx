@@ -1,29 +1,56 @@
-import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import './globals.css';
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Toaster } from 'sonner'
+import { AuthSessionProvider } from '@/components/providers/session-provider'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin']
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Platforms Starter Kit',
-  description: 'Next.js template for building a multi-tenant SaaS.'
-};
+  title: 'Multi-Tenant System',
+  description: 'Sistema multi-tenant para gestión de tiendas',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Nanixhe Chicken'
+  },
+  icons: {
+    icon: '/icon-192x192.png',
+    apple: '/icon-192x192.png'
+  }
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#2563eb'
+}
 
 export default function RootLayout({
-  children
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} antialiased`}>
-        {children}
-        <SpeedInsights />
+    <html lang="es">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2563eb" />
+        <meta name="color-scheme" content="light" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Nanixhe Chicken" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+      </head>
+      <body className={`${inter.className} light`}>
+        <AuthSessionProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </AuthSessionProvider>
       </body>
     </html>
-  );
+  )
 }
