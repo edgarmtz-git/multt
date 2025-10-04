@@ -17,10 +17,15 @@ export function getServerConfig() {
 // Configuración para NextAuth
 export function getNextAuthConfig() {
   const config = getServerConfig()
+  const secret = process.env.NEXTAUTH_SECRET || ''
+  // En producción, exigir NEXTAUTH_SECRET definido para evitar claves débiles
+  if (config.isProduction && !secret) {
+    throw new Error('NEXTAUTH_SECRET must be set in production environment')
+  }
   
   return {
     url: config.baseUrl,
-    secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
+    secret: secret || "fallback-secret-for-development",
     pages: {
       signIn: '/login',
     }

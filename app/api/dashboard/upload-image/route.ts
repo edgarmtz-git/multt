@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
+import sharp from 'sharp'
 // Función para generar ID único sin dependencias externas
 function generateUniqueId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
@@ -26,11 +27,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Imagen y tipo requeridos' }, { status: 400 })
     }
 
-    // Validar tipo de archivo
-    if (!image.type.startsWith('image/')) {
-      return NextResponse.json({ message: 'Solo se permiten archivos de imagen' }, { status: 400 })
-    }
-
     // Validar tamaño (máximo 2MB)
     if (image.size > 2 * 1024 * 1024) {
       return NextResponse.json({ message: 'La imagen es demasiado grande. Máximo 2MB' }, { status: 400 })
@@ -40,14 +36,31 @@ export async function POST(request: NextRequest) {
     const uploadsDir = join(process.cwd(), 'public', 'uploads', 'store-images')
     await mkdir(uploadsDir, { recursive: true })
 
-    // Generar nombre único para el archivo
-    const fileExtension = image.name.split('.').pop() || 'jpg'
-    const fileName = `${type}-${session.user.id}-${generateUniqueId()}.${fileExtension}`
-    const filePath = join(uploadsDir, fileName)
+    // Convertir File a Buffer y validar con Sharp por contenido real
+    const originalBuffer = Buffer.from(await image.arrayBuffer())
+    let processedBuffer: Buffer
+    let outputExtension = 'jpg'
+    try {
+      const img = sharp(originalBuffer, { failOn: 'error' })
+      const metadata = await img.metadata()
+      if (!metadata.format) {
+        return NextResponse.json({ message: 'Imagen inválida' }, { status: 400 })
+      }
+      // Re-encodear a formato seguro (JPEG) y limitar dimensiones
+      processedBuffer = await img
+        .rotate()
+        .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85, mozjpeg: true })
+        .toBuffer()
+      outputExtension = 'jpg'
+    } catch (e) {
+      return NextResponse.json({ message: 'No se pudo procesar la imagen' }, { status: 400 })
+    }
 
-    // Convertir File a Buffer y guardar
-    const buffer = Buffer.from(await image.arrayBuffer())
-    await writeFile(filePath, buffer)
+    // Generar nombre único para el archivo procesado
+    const fileName = `${type}-${session.user.id}-${generateUniqueId()}.${outputExtension}`
+    const filePath = join(uploadsDir, fileName)
+    await writeFile(filePath, processedBuffer)
 
     // Generar URL relativa
     const imageUrl = `/uploads/store-images/${fileName}`
@@ -84,7 +97,7 @@ export async function POST(request: NextRequest) {
       type,
       fileName,
       imageUrl,
-      fileSize: buffer.length
+      fileSize: processedBuffer.length
     })
 
     return NextResponse.json({ 
