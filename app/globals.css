@@ -119,6 +119,22 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Forzar modo claro */
+  html {
+    color-scheme: light;
+  }
+  
+  body.light {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+  }
+  
+  /* Asegurar que no se aplique modo oscuro */
+  .dark body {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+  }
 }
 
 .emoji-picker-container .epr-body::-webkit-scrollbar {
