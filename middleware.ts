@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getToken } from "next-auth/jwt";
-import { simpleRateLimit, applyBasicSecurityHeaders, logSecurityEvent } from '@/lib/security-simple'
+import { simpleRateLimit, logSecurityEvent } from '@/lib/security-simple'
+import { applySecurityHeaders } from '@/lib/security-headers'
 import { rootDomain } from '@/lib/utils';
 
 function extractSubdomain(request: NextRequest): string | null {
@@ -48,9 +49,9 @@ export async function middleware(request: NextRequest) {
   
   // Aplicar headers de seguridad a todas las respuestas
   const response = NextResponse.next();
-  applyBasicSecurityHeaders(response);
+  applySecurityHeaders(response);
 
-  // Rate limiting básico para APIs
+  // Rate limiting básico para APIs (protegido por matcher)
   if (pathname.startsWith('/api/')) {
     const ip = request.ip || 'unknown'
     const maxRequests = pathname.includes('/auth/') ? 5 : 100
@@ -150,12 +151,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except for:
-     * 1. /api routes
-     * 2. /_next (Next.js internals)
-     * 3. all root files inside /public (e.g. /favicon.ico)
-     */
-    '/((?!api|_next|favicon.ico|robots.txt|sitemap.xml|.*\\.[\\w-]+).*)'
+    // Incluir APIs explícitamente para aplicar headers y rate limit
+    '/api/:path*',
+    // Páginas de la app (excluyendo estáticos e internals)
+    '/((?!_next|favicon.ico|robots.txt|sitemap.xml|.*\\.[\\w-]+).*)'
   ]
 };
