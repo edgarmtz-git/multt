@@ -1,14 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
+import { orderSchema } from '@/lib/validation'
+import { ZodError } from 'zod'
 
 // POST - Crear nuevo pedido
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Validar con Zod
+    const validationResult = orderSchema.safeParse({
+      customerName: body.customerName,
+      customerWhatsApp: body.customerWhatsApp,
+      customerEmail: body.customerEmail,
+      deliveryMethod: body.deliveryMethod,
+      paymentMethod: body.paymentMethod,
+      address: body.address,
+      items: body.items,
+      subtotal: body.subtotal,
+      deliveryFee: body.deliveryFee,
+      total: body.total,
+      observations: body.observations
+    })
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Datos inválidos',
+          details: validationResult.error.errors
+        },
+        { status: 400 }
+      )
+    }
+
     const {
-      orderNumber,
       customerName,
       customerWhatsApp,
       customerEmail,
@@ -19,19 +44,10 @@ export async function POST(request: NextRequest) {
       subtotal,
       deliveryFee,
       total,
-      amountPaid,
-      change,
-      observations,
-      storeSlug
-    } = body
+      observations
+    } = validationResult.data
 
-    // Validar datos requeridos
-    if (!orderNumber || !customerName || !customerWhatsApp || !items || !total) {
-      return NextResponse.json(
-        { error: 'Faltan datos requeridos del pedido' },
-        { status: 400 }
-      )
-    }
+    const { orderNumber, amountPaid, change, storeSlug } = body
 
     // Buscar la tienda por slug
     const store = await prisma.storeSettings.findUnique({
@@ -46,33 +62,67 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validar que la tienda esté activa
+    if (!store.storeActive) {
+      return NextResponse.json(
+        { error: 'Tienda no disponible en este momento' },
+        { status: 403 }
+      )
+    }
+
     // Crear pedido usando transacción
     const result = await prisma.$transaction(async (tx) => {
-      // Crear el pedido
+      // Crear el pedido con TODOS los campos
       const order = await tx.order.create({
         data: {
+          orderNumber,
           status: 'PENDING',
-          total: total,
+          total,
+          subtotal: subtotal || null,
+          deliveryFee: deliveryFee || 0,
+          customerName,
           customerEmail: customerEmail || null,
-          customerName: customerName,
+          customerWhatsApp,
+          deliveryMethod,
+          address: address || null,
+          paymentMethod,
+          amountPaid: amountPaid || null,
+          change: change || null,
           notes: observations || null,
+          trackingUrl: `/tracking/order/${orderNumber}`,
           userId: store.userId
         }
       })
 
-      // Crear items del pedido
+      // Crear items del pedido CON opciones
       const orderItems = await Promise.all(
-        items.map((item: any) =>
-          tx.orderItem.create({
+        items.map(async (item: any) => {
+          const orderItem = await tx.orderItem.create({
             data: {
               quantity: item.quantity,
               price: item.price,
               variantName: item.variantName || null,
               orderId: order.id,
-              productId: item.id
+              productId: item.id,
+              variantId: item.variantId || null
             }
           })
-        )
+
+          // Guardar opciones seleccionadas si existen
+          if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+            await tx.orderItemOption.createMany({
+              data: item.options.map((opt: any) => ({
+                orderItemId: orderItem.id,
+                optionName: opt.optionName || 'Opción',
+                choiceName: opt.choiceName || opt.name,
+                price: opt.price || 0,
+                quantity: opt.quantity || 1
+              }))
+            })
+          }
+
+          return orderItem
+        })
       )
 
       return { order, orderItems }
@@ -170,7 +220,8 @@ export async function GET(request: NextRequest) {
         items: {
           include: {
             product: true,
-            variant: true
+            variant: true,
+            options: true
           }
         }
       },
@@ -181,11 +232,16 @@ export async function GET(request: NextRequest) {
     // Formatear respuesta
     const formattedOrders = orders.map(order => ({
       id: order.id,
-      orderNumber: `ORD-${order.id.slice(-6)}`,
+      orderNumber: order.orderNumber,
       status: order.status,
       customerName: order.customerName,
       customerEmail: order.customerEmail,
+      customerWhatsApp: order.customerWhatsApp,
+      deliveryMethod: order.deliveryMethod,
+      paymentMethod: order.paymentMethod,
       total: order.total,
+      subtotal: order.subtotal,
+      deliveryFee: order.deliveryFee,
       itemsCount: order.items.length,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
@@ -194,7 +250,8 @@ export async function GET(request: NextRequest) {
         productName: item.product.name,
         quantity: item.quantity,
         price: item.price,
-        variantName: item.variantName
+        variantName: item.variantName,
+        options: item.options
       }))
     }))
 

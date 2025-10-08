@@ -163,8 +163,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full h-full sm:w-full sm:max-w-md sm:max-h-[95vh] sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+      <div className="bg-white w-full h-screen md:h-auto md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[90vh] md:rounded-lg overflow-hidden flex flex-col shadow-2xl">
         {/* Content scrolleable - incluye imagen y toda la información */}
         <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
           {/* Header con imagen grande */}

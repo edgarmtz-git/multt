@@ -148,22 +148,26 @@ export function ProductForm({
   
   // Debug: Log initial data
   console.log('🔍 ProductForm initialData:', initialData)
-  console.log('🔍 ProductForm productGlobalOptions:', initialData?.productGlobalOptions)
+  // console.log('🔍 ProductForm productGlobalOptions:', initialData?.productGlobalOptions)
+
+  // Cast to any to avoid type errors with Prisma-generated types
+  const data = initialData as any
+
   const [formData, setFormData] = useState<ProductFormData>({
-    name: initialData?.name || '',
-    isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
-    type: initialData?.type || 'physical',
-    sku: initialData?.sku || '',
-    weight: initialData?.weight || 0,
-    price: initialData?.price || 0,
-    originalPrice: initialData?.originalPrice || 0,
-    description: initialData?.description || '',
-    imageUrl: initialData?.imageUrl || initialData?.images?.[0]?.url || '',
+    name: data?.name || '',
+    isActive: data?.isActive !== undefined ? data.isActive : true,
+    type: data?.type || 'physical',
+    sku: data?.sku || '',
+    weight: data?.weight || 0,
+    price: data?.price || 0,
+    originalPrice: data?.originalPrice || 0,
+    description: data?.description || '',
+    imageUrl: data?.imageUrl || data?.images?.[0]?.url || '',
     deliveryMethods: {
-      pickup: initialData?.deliveryHome || true,
-      shipping: initialData?.deliveryStore || false
+      pickup: data?.allowPickup ?? true,
+      shipping: data?.allowShipping ?? true
     },
-    variants: (initialData?.variants && Array.isArray(initialData.variants)) ? initialData.variants.map((v: any) => ({
+    variants: (data?.variants && Array.isArray(data.variants)) ? data.variants.map((v: any) => ({
       id: v?.id,
       name: v?.name || '',
       price: Number(v?.price) || 0,
@@ -172,7 +176,7 @@ export function ProductForm({
       weight: Number(v?.weight) || 0,
       imageUrl: v?.imageUrl || ''
     })) : [],
-    options: (initialData?.options && Array.isArray(initialData.options)) ? initialData.options.map((o: any) => ({
+    options: (initialData?.options && Array.isArray(data?.options)) ? data?.options.map((o: any) => ({
       id: o?.id,
       name: o?.name || '',
       type: o?.type || 'text',
@@ -185,7 +189,7 @@ export function ProductForm({
       })) : []
     })) : [],
     inventory: {
-      trackQuantity: initialData?.trackQuantity || false,
+      trackQuantity: data?.trackQuantity || false,
       stock: initialData?.stock || 0,
       dailyCapacity: initialData?.dailyCapacity || false,
       maxDailySales: initialData?.maxDailySales || undefined,
@@ -199,17 +203,17 @@ export function ProductForm({
     categoryId: initialData?.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
     // Opciones globales
     globalOptions: (() => {
-      if (initialData?.globalOptions && Array.isArray(initialData.globalOptions)) {
-        console.log('🔍 Using globalOptions:', initialData.globalOptions)
-        return initialData.globalOptions.map((go: any) => ({
+      if (initialData?.globalOptions && Array.isArray(data?.globalOptions)) {
+        console.log('🔍 Using globalOptions:', data?.globalOptions)
+        return data?.globalOptions.map((go: any) => ({
           globalOptionId: go.globalOptionId || go.id,
           maxSelections: go.maxSelections,
           minSelections: go.minSelections,
           isRequired: go.isRequired || false
         }))
-      } else if (initialData?.productGlobalOptions && Array.isArray(initialData.productGlobalOptions)) {
-        console.log('🔍 Using productGlobalOptions:', initialData.productGlobalOptions)
-        return initialData.productGlobalOptions.map((pgo: any) => ({
+      } else if (initialData?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
+        console.log('🔍 Using productGlobalOptions:', data?.productGlobalOptions)
+        return data?.productGlobalOptions.map((pgo: any) => ({
           globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
           maxSelections: pgo.maxSelections,
           minSelections: pgo.minSelections,
@@ -255,9 +259,9 @@ export function ProductForm({
       })
     } 
     // Solo usar initialData como fallback cuando formData.globalOptions no esté definido
-    else if (initialData?.productGlobalOptions && Array.isArray(initialData.productGlobalOptions)) {
-      console.log('🔍 Computing assigned global options from initialData:', initialData.productGlobalOptions)
-      return initialData.productGlobalOptions.map((pgo: any) => ({
+    else if (initialData?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
+      console.log('🔍 Computing assigned global options from initialData:', data?.productGlobalOptions)
+      return data?.productGlobalOptions.map((pgo: any) => ({
         globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
         maxSelections: pgo.maxSelections,
         minSelections: pgo.minSelections,
@@ -317,20 +321,20 @@ export function ProductForm({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.name || '',
-        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
-        type: initialData.type || 'physical',
-        sku: initialData.sku || '',
-        weight: initialData.weight || 0,
-        price: initialData.price || 0,
-        originalPrice: initialData.originalPrice || 0,
-        description: initialData.description || '',
-        imageUrl: initialData.imageUrl || initialData.images?.[0]?.url || '',
+        name: data?.name || '',
+        isActive: data?.isActive !== undefined ? data?.isActive : true,
+        type: data?.type || 'physical',
+        sku: data?.sku || '',
+        weight: data?.weight || 0,
+        price: data?.price || 0,
+        originalPrice: data?.originalPrice || 0,
+        description: data?.description || '',
+        imageUrl: data?.imageUrl || data?.images?.[0]?.url || '',
         deliveryMethods: {
-          pickup: initialData.deliveryHome || true,
-          shipping: initialData.deliveryStore || false
+          pickup: data?.deliveryHome || true,
+          shipping: data?.deliveryStore || false
         },
-        variants: (initialData.variants && Array.isArray(initialData.variants)) ? initialData.variants.map((v: any) => ({
+        variants: (data?.variants && Array.isArray(data?.variants)) ? data?.variants.map((v: any) => ({
           id: v?.id,
           name: v?.name || '',
           price: Number(v?.price) || 0,
@@ -339,7 +343,7 @@ export function ProductForm({
           weight: Number(v?.weight) || 0,
           imageUrl: v?.imageUrl || ''
         })) : [],
-        options: (initialData.options && Array.isArray(initialData.options)) ? initialData.options.map((o: any) => ({
+        options: (data?.options && Array.isArray(data?.options)) ? data?.options.map((o: any) => ({
           id: o?.id,
           name: o?.name || '',
           type: o?.type || 'text',
@@ -352,28 +356,28 @@ export function ProductForm({
           })) : []
         })) : [],
         inventory: {
-          trackQuantity: initialData.trackQuantity || false,
-          stock: initialData.stock || 0,
-          dailyCapacity: initialData.dailyCapacity || false,
-          maxDailySales: initialData.maxDailySales || undefined,
-          maxOrderQuantity: initialData.maxOrderQuantity || false,
-          maxQuantity: initialData.maxQuantity || undefined,
-          minOrderQuantity: initialData.minOrderQuantity || false,
-          minQuantity: initialData.minQuantity || undefined
+          trackQuantity: data?.trackQuantity || false,
+          stock: data?.stock || 0,
+          dailyCapacity: data?.dailyCapacity || false,
+          maxDailySales: data?.maxDailySales || undefined,
+          maxOrderQuantity: data?.maxOrderQuantity || false,
+          maxQuantity: data?.maxQuantity || undefined,
+          minOrderQuantity: data?.minOrderQuantity || false,
+          minQuantity: data?.minQuantity || undefined
         },
-        tags: initialData.tags || [],
-        categoryId: initialData.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
+        tags: data?.tags || [],
+        categoryId: data?.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
         // Campos adicionales de precios
         pricing: {
-          costPrice: initialData.pricing?.costPrice || 0,
-          wholesalePrice: initialData.pricing?.wholesalePrice || 0,
+          costPrice: data?.pricing?.costPrice || 0,
+          wholesalePrice: data?.pricing?.wholesalePrice || 0,
           bulkDiscount: {
-            enabled: initialData.pricing?.bulkDiscount?.enabled || false,
-            minQuantity: initialData.pricing?.bulkDiscount?.minQuantity || 10,
-            discountPercentage: initialData.pricing?.bulkDiscount?.discountPercentage || 10
+            enabled: data?.pricing?.bulkDiscount?.enabled || false,
+            minQuantity: data?.pricing?.bulkDiscount?.minQuantity || 10,
+            discountPercentage: data?.pricing?.bulkDiscount?.discountPercentage || 10
           },
-          taxRate: initialData.pricing?.taxRate || 0,
-          commission: initialData.pricing?.commission || 0
+          taxRate: data?.pricing?.taxRate || 0,
+          commission: data?.pricing?.commission || 0
         }
       })
     }

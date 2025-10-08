@@ -92,6 +92,21 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // 📧 Enviar email de invitación
+    try {
+      const { sendInvitationEmail } = await import('@/lib/email/send-emails')
+      await sendInvitationEmail({
+        clientName,
+        clientEmail,
+        invitationCode: code,
+        slug,
+        expiresAt
+      })
+    } catch (emailError) {
+      console.error('Error enviando email de invitación:', emailError)
+      // No bloquear la respuesta si falla el email
+    }
+
     return NextResponse.json(invitation)
   } catch (error) {
     console.error('Error creating invitation:', error)

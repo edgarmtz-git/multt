@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -13,9 +13,11 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const globalOption = await prisma.globalOption.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id
       },
       include: {
@@ -42,7 +44,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -50,12 +52,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const { isAvailable, reason } = await request.json()
 
     // Verificar que la opción global pertenece al usuario
     const globalOption = await prisma.globalOption.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id
       }
     })
@@ -66,14 +69,14 @@ export async function PUT(
 
     // Crear o actualizar la disponibilidad
     const availability = await prisma.globalOptionAvailability.upsert({
-      where: { globalOptionId: params.id },
+      where: { globalOptionId: id },
       update: {
         isAvailable,
         reason: reason || null,
         updatedAt: new Date()
       },
       create: {
-        globalOptionId: params.id,
+        globalOptionId: id,
         isAvailable,
         reason: reason || null
       }

@@ -127,8 +127,17 @@ export async function POST(request: NextRequest) {
           message = `Lo sentimos, no realizamos entregas a más de ${maxDistance} km de distancia. Tu ubicación está a ${distance} km.`
         } else {
           const pricePerKm = storeSettings.pricePerKm || 0
-          deliveryPrice = Math.round(distance * pricePerKm * 100) / 100
-          message = `Envío calculado: ${distance} km × $${pricePerKm}/km = $${deliveryPrice}`
+          const minFee = storeSettings.minDeliveryFee || 0
+          const calculatedPrice = Math.round(distance * pricePerKm * 100) / 100
+
+          // Aplicar costo mínimo si el calculado es menor
+          deliveryPrice = Math.max(calculatedPrice, minFee)
+
+          if (deliveryPrice === minFee && calculatedPrice < minFee) {
+            message = `Envío: $${deliveryPrice} (costo mínimo aplicado - distancia ${distance} km)`
+          } else {
+            message = `Envío calculado: ${distance} km × $${pricePerKm}/km = $${deliveryPrice}`
+          }
         }
         break
 

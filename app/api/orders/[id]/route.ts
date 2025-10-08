@@ -23,7 +23,9 @@ export async function GET(
       include: {
         items: {
           include: {
-            product: true
+            product: true,
+            variant: true,
+            options: true
           }
         },
         user: {
@@ -48,12 +50,21 @@ export async function GET(
       success: true,
       order: {
         id: order.id,
-        orderNumber: `ORD-${order.id.slice(-6)}`,
+        orderNumber: order.orderNumber,
         status: order.status,
         customerName: order.customerName,
         customerEmail: order.customerEmail,
+        customerWhatsApp: order.customerWhatsApp,
+        deliveryMethod: order.deliveryMethod,
+        address: order.address,
+        paymentMethod: order.paymentMethod,
+        amountPaid: order.amountPaid,
+        change: order.change,
         total: order.total,
+        subtotal: order.subtotal,
+        deliveryFee: order.deliveryFee,
         notes: order.notes,
+        trackingUrl: order.trackingUrl,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
         items: order.items.map(item => ({
@@ -61,7 +72,9 @@ export async function GET(
           productName: item.product.name,
           quantity: item.quantity,
           price: item.price,
-          variantName: item.variantName
+          variantName: item.variantName,
+          variant: item.variant,
+          options: item.options
         }))
       }
     })

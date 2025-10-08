@@ -12,10 +12,8 @@ import {
 } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-
-const prisma = new PrismaClient()
 
 export default async function OrdersPage() {
   const session = await getServerSession(authOptions)
@@ -123,7 +121,7 @@ export default async function OrdersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {orders.filter(o => o.status === 'pending').length}
+                {orders.filter(o => o.status === 'PENDING').length}
               </div>
               <p className="text-xs text-muted-foreground">
                 Requieren atención
@@ -138,7 +136,7 @@ export default async function OrdersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {orders.filter(o => o.status === 'completed').length}
+                {orders.filter(o => o.status === 'DELIVERED').length}
               </div>
               <p className="text-xs text-muted-foreground">
                 Este mes

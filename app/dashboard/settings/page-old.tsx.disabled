@@ -60,9 +60,10 @@ export default function SettingsPage() {
     loadSettings()
     loadDeliveryZones()
     // Detectar dominio automáticamente
-    if (typeof window !== 'undefined') {
-      setDomain(window.location.hostname + (window.location.port ? `:${window.location.port}` : ''))
-    }
+    // TODO: setDomain is not defined - this is an old file that should be removed
+    // if (typeof window !== 'undefined') {
+    //   setDomain(window.location.hostname + (window.location.port ? `:${window.location.port}` : ''))
+    // }
   }, [])
 
   const loadSettings = async () => {

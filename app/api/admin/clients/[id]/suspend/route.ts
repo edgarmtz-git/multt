@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { PrismaClient } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // POST - Suspender un cliente
 export async function POST(
@@ -36,16 +34,56 @@ export async function POST(
     }
 
     // Suspender el cliente
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         isSuspended: true,
         suspensionReason: reason || 'Pago pendiente - renovación vencida',
         suspendedAt: new Date()
+      },
+      include: {
+        storeSettings: {
+          select: {
+            storeName: true,
+            storeSlug: true
+          }
+        }
       }
     })
 
-    return NextResponse.json({ 
+    // 📧 Enviar emails de notificación
+    try {
+      const { sendClientSuspendedEmail, sendClientSuspendedAdminEmail } = await import('@/lib/email/send-emails')
+
+      const storeName = updatedUser.storeSettings?.storeName || updatedUser.company || 'Tu tienda'
+      const storeSlug = updatedUser.storeSettings?.storeSlug || updatedUser.company || ''
+      const suspensionReason = updatedUser.suspensionReason || 'Suspensión administrativa'
+
+      // Email al cliente
+      await sendClientSuspendedEmail({
+        clientName: updatedUser.name,
+        clientEmail: updatedUser.email,
+        storeName,
+        suspensionReason,
+        suspendedAt: updatedUser.suspendedAt || new Date()
+      })
+
+      // Email al admin
+      await sendClientSuspendedAdminEmail({
+        clientName: updatedUser.name,
+        clientEmail: updatedUser.email,
+        storeName,
+        storeSlug,
+        suspensionReason,
+        suspendedAt: updatedUser.suspendedAt || new Date(),
+        suspendedBy: session.user.name || session.user.email
+      })
+    } catch (emailError) {
+      console.error('Error enviando emails de suspensión:', emailError)
+      // No bloquear la respuesta si falla el email
+    }
+
+    return NextResponse.json({
       message: 'Cliente suspendido exitosamente',
       client: {
         id: client.id,

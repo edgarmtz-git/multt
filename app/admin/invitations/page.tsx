@@ -39,7 +39,6 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { useSlugValidation, useEmailValidation } from "@/lib/hooks/useValidation"
-import { config } from "@/lib/config"
 
 interface Invitation {
   id: string

@@ -165,13 +165,14 @@ export async function GET() {
           return undefined
         }
       })() : undefined,
-      whatsappSequentialNumbers: settings.whatsappSequentialNumbers ? (() => {
-        try {
-          return JSON.parse(settings.whatsappSequentialNumbers)
-        } catch {
-          return []
-        }
-      })() : [],
+      // TODO: whatsappSequentialNumbers field missing from schema - add to StoreSettings model
+      // whatsappSequentialNumbers: settings.whatsappSequentialNumbers ? (() => {
+      //   try {
+      //     return JSON.parse(settings.whatsappSequentialNumbers)
+      //   } catch {
+      //     return []
+      //   }
+      // })() : [],
       businessHours: settings.businessHours ? (() => {
         try {
           return JSON.parse(settings.businessHours as string)
@@ -423,7 +424,7 @@ export async function PUT(request: NextRequest) {
         deliveryScheduleEnabled: deliveryScheduleEnabled || false,
         scheduleType: scheduleType || 'date',
         advanceDays: advanceDays || 1,
-        serviceHours: serviceHours ? JSON.stringify(serviceHours) : null,
+        serviceHours: serviceHours ? JSON.stringify(serviceHours) : undefined,
         // Campos de cálculo de envío
         deliveryCalculationMethod: deliveryCalculationMethod || 'distance',
         pricePerKm: pricePerKm || 0,
@@ -472,7 +473,7 @@ export async function PUT(request: NextRequest) {
         deliveryScheduleEnabled: deliveryScheduleEnabled || false,
         scheduleType: scheduleType || 'date',
         advanceDays: advanceDays || 1,
-        serviceHours: serviceHours ? JSON.stringify(serviceHours) : null,
+        serviceHours: serviceHours ? JSON.stringify(serviceHours) : undefined,
         // Campos de cálculo de envío
         deliveryCalculationMethod: deliveryCalculationMethod || 'distance',
         pricePerKm: pricePerKm || 0,
@@ -508,13 +509,14 @@ export async function PUT(request: NextRequest) {
           return undefined
         }
       })() : undefined,
-      whatsappSequentialNumbers: updatedSettings.whatsappSequentialNumbers ? (() => {
-        try {
-          return JSON.parse(updatedSettings.whatsappSequentialNumbers)
-        } catch {
-          return []
-        }
-      })() : [],
+      // TODO: whatsappSequentialNumbers field missing from schema - add to StoreSettings model
+      // whatsappSequentialNumbers: updatedSettings.whatsappSequentialNumbers ? (() => {
+      //   try {
+      //     return JSON.parse(updatedSettings.whatsappSequentialNumbers)
+      //   } catch {
+      //     return []
+      //   }
+      // })() : [],
       businessHours: updatedSettings.businessHours ? (() => {
         try {
           return JSON.parse(updatedSettings.businessHours as string)

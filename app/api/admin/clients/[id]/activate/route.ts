@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// POST - Activar un cliente suspendido
+// POST - Reactivar un cliente
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,7 +20,7 @@ export async function POST(
     // Verificar que el cliente existe
     const client = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, email: true, role: true }
+      select: { id: true, name: true, email: true, role: true, isSuspended: true }
     })
 
     if (!client) {
@@ -28,21 +28,53 @@ export async function POST(
     }
 
     if (client.role !== 'CLIENT') {
-      return NextResponse.json({ message: 'Solo se pueden activar clientes' }, { status: 400 })
+      return NextResponse.json({ message: 'Solo se pueden reactivar clientes' }, { status: 400 })
     }
 
-    // Activar el cliente (quitar suspensión)
-    await prisma.user.update({
+    if (!client.isSuspended) {
+      return NextResponse.json({ message: 'El cliente no está suspendido' }, { status: 400 })
+    }
+
+    // Reactivar el cliente
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         isSuspended: false,
         suspensionReason: null,
-        suspendedAt: null
+        suspendedAt: null,
+        isActive: true
+      },
+      include: {
+        storeSettings: {
+          select: {
+            storeName: true,
+            storeSlug: true
+          }
+        }
       }
     })
 
-    return NextResponse.json({ 
-      message: 'Cliente activado exitosamente',
+    // 📧 Enviar email de confirmación
+    try {
+      const { sendClientReactivatedEmail } = await import('@/lib/email/send-emails')
+
+      const storeName = updatedUser.storeSettings?.storeName || updatedUser.company || 'Tu tienda'
+      const storeSlug = updatedUser.storeSettings?.storeSlug || updatedUser.company || ''
+
+      await sendClientReactivatedEmail({
+        clientName: updatedUser.name,
+        clientEmail: updatedUser.email,
+        storeName,
+        storeSlug,
+        reactivatedAt: new Date()
+      })
+    } catch (emailError) {
+      console.error('Error enviando email de reactivación:', emailError)
+      // No bloquear la respuesta si falla el email
+    }
+
+    return NextResponse.json({
+      message: 'Cliente reactivado exitosamente',
       client: {
         id: client.id,
         name: client.name,
@@ -52,7 +84,7 @@ export async function POST(
   } catch (error) {
     console.error('Error activating client:', error)
     return NextResponse.json(
-      { message: 'Error interno del servidor al activar cliente' },
+      { message: 'Error interno del servidor al reactivar cliente' },
       { status: 500 }
     )
   }

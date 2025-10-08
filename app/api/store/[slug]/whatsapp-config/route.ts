@@ -4,17 +4,18 @@ import { prisma } from '@/lib/prisma'
 // GET - Obtener configuración de WhatsApp para una tienda
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     // Buscar la tienda por slug
     const store = await prisma.storeSettings.findUnique({
       where: { storeSlug: slug },
       select: {
         whatsappMainNumber: true,
-        whatsappSequentialNumbers: true,
+        // TODO: whatsappSequentialNumbers field missing from schema
+        // whatsappSequentialNumbers: true,
         storeActive: true
       }
     })
@@ -27,19 +28,19 @@ export async function GET(
       return NextResponse.json({ message: 'Tienda no disponible' }, { status: 403 })
     }
 
-    // Parsear números secuenciales si existen
-    const parsedSequentialNumbers = store.whatsappSequentialNumbers ? 
-      (() => {
-        try {
-          return JSON.parse(store.whatsappSequentialNumbers)
-        } catch {
-          return []
-        }
-      })() : []
+    // TODO: Parsear números secuenciales cuando el campo exista en schema
+    // const parsedSequentialNumbers = store.whatsappSequentialNumbers ?
+    //   (() => {
+    //     try {
+    //       return JSON.parse(store.whatsappSequentialNumbers)
+    //     } catch {
+    //       return []
+    //     }
+    //   })() : []
 
     return NextResponse.json({
       whatsappMainNumber: store.whatsappMainNumber,
-      whatsappSequentialNumbers: parsedSequentialNumbers
+      // whatsappSequentialNumbers: parsedSequentialNumbers
     })
   } catch (error) {
     console.error('Error fetching WhatsApp config:', error)

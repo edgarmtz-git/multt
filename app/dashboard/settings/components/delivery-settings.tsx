@@ -207,7 +207,7 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
               <div className="text-sm font-medium text-blue-900">
                 Configuración por distancia
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="pricePerKm">Precio por kilómetro ($)</Label>
                   <Input
@@ -215,24 +215,41 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
                     type="number"
                     step="0.01"
                     value={settings.pricePerKm || 0}
-                    onChange={(e) => setSettings((prev: any) => ({ 
-                      ...prev, 
-                      pricePerKm: parseFloat(e.target.value) || 0 
+                    onChange={(e) => setSettings((prev: any) => ({
+                      ...prev,
+                      pricePerKm: parseFloat(e.target.value) || 0
                     }))}
-                    placeholder="5.00"
+                    placeholder="10.00"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="minDeliveryFee">Costo mínimo ($)</Label>
+                  <Input
+                    id="minDeliveryFee"
+                    type="number"
+                    step="0.01"
+                    value={settings.minDeliveryFee || 0}
+                    onChange={(e) => setSettings((prev: any) => ({
+                      ...prev,
+                      minDeliveryFee: parseFloat(e.target.value) || 0
+                    }))}
+                    placeholder="30.00"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Mínimo a cobrar en envíos cortos
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="maxDeliveryDistance">Distancia máxima (km)</Label>
                   <Input
                     id="maxDeliveryDistance"
                     type="number"
-                    value={settings.maxDeliveryDistance || 7}
-                    onChange={(e) => setSettings((prev: any) => ({ 
-                      ...prev, 
-                      maxDeliveryDistance: parseInt(e.target.value) || 7 
+                    value={settings.maxDeliveryDistance || 10}
+                    onChange={(e) => setSettings((prev: any) => ({
+                      ...prev,
+                      maxDeliveryDistance: parseInt(e.target.value) || 10
                     }))}
-                    placeholder="7"
+                    placeholder="10"
                   />
                 </div>
               </div>
@@ -540,7 +557,6 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
           </div>
         </CardContent>
       </Card>
-      )}
 
       {/* Modal de zona de entrega */}
       <DeliveryZoneModal

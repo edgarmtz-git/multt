@@ -82,11 +82,11 @@ export function AvailabilityPageClient({ initialSchedule }: AvailabilityPageClie
 
   // Verificar estado actual
   const now = new Date()
-  const currentDay = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()]
+  const currentDay = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()] as keyof typeof schedule.operatingHours
   const currentHour = now.getHours()
   const currentMinute = now.getMinutes()
   const currentTime = currentHour * 60 + currentMinute
-  
+
   const todayConfig = schedule?.operatingHours?.[currentDay]
   let isCurrentlyOpen = false
   let currentPeriod = null
@@ -213,7 +213,7 @@ export function AvailabilityPageClient({ initialSchedule }: AvailabilityPageClie
           <CardContent>
             <div className="space-y-4">
               {days.map((day) => {
-                const dayData = schedule?.operatingHours?.[day.key]
+                const dayData = schedule?.operatingHours?.[day.key as keyof typeof schedule.operatingHours]
                 return (
                   <div key={day.key} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">

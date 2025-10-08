@@ -34,14 +34,19 @@ export async function GET(
 
     // Formatear la respuesta con la información de la tienda
     const storeInfo = {
-      storeSlug: store.storeSlug,
+      storeSlug: store.storeSettings.storeSlug,
       storeName: store.storeSettings.storeName || 'Tienda',
       whatsappMainNumber: store.storeSettings.whatsappMainNumber || '',
       phoneNumber: store.storeSettings.phoneNumber || '',
       deliveryEnabled: store.storeSettings.deliveryEnabled || false,
       baseDeliveryPrice: store.storeSettings.baseDeliveryPrice || 0,
-      freeDeliveryMinAmount: store.storeSettings.freeDeliveryMinAmount || 0,
-      freeDeliveryMinItems: store.storeSettings.freeDeliveryMinItems || 0,
+      // Configuración de método de cálculo de envío
+      deliveryCalculationMethod: store.storeSettings.deliveryCalculationMethod || 'manual',
+      pricePerKm: store.storeSettings.pricePerKm || 0,
+      minDeliveryFee: store.storeSettings.minDeliveryFee || 0,
+      maxDeliveryDistance: store.storeSettings.maxDeliveryDistance || 10,
+      manualDeliveryMessage: store.storeSettings.manualDeliveryMessage || 'El costo de envío se calculará al confirmar el pedido',
+      // Configuración de pagos
       cashPaymentEnabled: store.storeSettings.cashPaymentEnabled || false,
       bankTransferEnabled: store.storeSettings.bankTransferEnabled || false,
       bankName: store.storeSettings.bankName || '',
@@ -49,7 +54,8 @@ export async function GET(
       accountHolder: store.storeSettings.accountHolder || '',
       clabe: store.storeSettings.clabe || '',
       transferInstructions: store.storeSettings.transferInstructions || '',
-      paymentInstructions: store.storeSettings.paymentInstructions || ''
+      paymentInstructions: store.storeSettings.paymentInstructions || '',
+      cashPaymentInstructions: store.storeSettings.cashPaymentInstructions || ''
     }
 
     console.log('🏪 Store API response:', { slug, storeInfo })

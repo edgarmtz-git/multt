@@ -10,14 +10,13 @@ export async function GET(
     const { cliente } = await params
     console.log('🔍 Cliente parameter:', cliente)
     
-    // Buscar la tienda por slug o ID
+    // Buscar la tienda por slug o ID (sin filtrar por storeActive)
     const storeSettings = await prisma.storeSettings.findFirst({
       where: {
         OR: [
           { storeSlug: cliente },
           { id: cliente }
-        ],
-        storeActive: true
+        ]
       },
       select: {
         id: true,
@@ -40,16 +39,59 @@ export async function GET(
         storeActive: true,
         passwordProtected: true,
         accessPassword: true,
-        // Campos de imágenes
         bannerImage: true,
-        profileImage: true
+        profileImage: true,
+        // Campos para validar estado
+        user: {
+          select: {
+            isSuspended: true,
+            isActive: true
+          }
+        }
       }
     })
 
+    // Tienda no existe
     if (!storeSettings) {
       return NextResponse.json(
-        { message: 'Tienda no encontrada' },
+        { error: 'Tienda no encontrada' },
         { status: 404 }
+      )
+    }
+
+    // Usuario suspendido
+    if (storeSettings.user.isSuspended) {
+      return NextResponse.json(
+        {
+          error: 'Tienda no disponible',
+          reason: 'suspended',
+          storeName: storeSettings.storeName
+        },
+        { status: 403 }
+      )
+    }
+
+    // Usuario inactivo
+    if (!storeSettings.user.isActive) {
+      return NextResponse.json(
+        {
+          error: 'Tienda no disponible',
+          reason: 'inactive',
+          storeName: storeSettings.storeName
+        },
+        { status: 403 }
+      )
+    }
+
+    // Tienda inactiva
+    if (!storeSettings.storeActive) {
+      return NextResponse.json(
+        {
+          error: 'Tienda no disponible',
+          reason: 'inactive',
+          storeName: storeSettings.storeName
+        },
+        { status: 403 }
       )
     }
 

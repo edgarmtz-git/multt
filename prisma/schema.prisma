@@ -3,38 +3,38 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id               String         @id @default(cuid())
-  email            String         @unique
-  name             String?
-  password         String
-  role             UserRole       @default(CLIENT)
-  company          String?
-  avatar           String?
-  isActive         Boolean        @default(true)
-  isSuspended      Boolean        @default(false)
-  suspensionReason String?
-  suspendedAt      DateTime?
+  id                String         @id @default(cuid())
+  email             String         @unique
+  name              String?
+  password          String
+  role              UserRole       @default(CLIENT)
+  company           String?
+  avatar            String?
+  isActive          Boolean        @default(true)
+  isSuspended       Boolean        @default(false)
+  suspensionReason  String?
+  suspendedAt       DateTime?
   // Campos de seguridad
-  lastLoginAt      DateTime?
-  lastLoginIP      String?
-  loginAttempts    Int            @default(0)
-  lockedUntil      DateTime?
-  passwordChangedAt DateTime      @default(now())
-  twoFactorEnabled Boolean        @default(false)
-  twoFactorSecret  String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  categories       Category[]
-  orders           Order[]
-  products         Product[]
-  storeSettings    StoreSettings?
-  globalOptions    GlobalOption[]
-  auditLogs        AuditLog[]
+  lastLoginAt       DateTime?
+  lastLoginIP       String?
+  loginAttempts     Int            @default(0)
+  lockedUntil       DateTime?
+  passwordChangedAt DateTime       @default(now())
+  twoFactorEnabled  Boolean        @default(false)
+  twoFactorSecret   String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  categories        Category[]
+  orders            Order[]
+  products          Product[]
+  storeSettings     StoreSettings?
+  globalOptions     GlobalOption[]
+  auditLogs         AuditLog[]
 
   @@map("users")
 }
@@ -59,36 +59,35 @@ model Category {
 }
 
 model Product {
-  id               String            @id @default(cuid())
-  name             String
-  description      String?
-  price            Float
-  stock            Int               @default(0)
-  imageUrl         String?
-  isActive         Boolean           @default(true)
-  hasVariants      Boolean           @default(false)
-  variantType      String?
-  variantLabel     String?
-  deliveryHome     Boolean           @default(true)
-  deliveryStore    Boolean           @default(true)
-  deliveryBoth     Boolean           @default(true)
-  trackQuantity    Boolean           @default(false)
-  dailyCapacity    Boolean           @default(false)
-  maxDailySales    Int?
-  maxOrderQuantity Boolean           @default(false)
-  maxQuantity      Int?
-  minOrderQuantity Boolean           @default(false)
-  minQuantity      Int?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  userId           String
-  categoryProducts CategoryProduct[]
-  orderItems       OrderItem[]
-  images           ProductImage[]
-  options          ProductOption[]
-  variants         ProductVariant[]
+  id                   String                @id @default(cuid())
+  name                 String
+  description          String?
+  price                Float
+  stock                Int                   @default(0)
+  imageUrl             String?
+  isActive             Boolean               @default(true)
+  hasVariants          Boolean               @default(false)
+  variantType          String?
+  variantLabel         String?
+  allowPickup          Boolean               @default(true) // Permite recoger en tienda
+  allowShipping        Boolean               @default(true) // Permite envío a domicilio
+  trackQuantity        Boolean               @default(false)
+  dailyCapacity        Boolean               @default(false)
+  maxDailySales        Int?
+  maxOrderQuantity     Boolean               @default(false)
+  maxQuantity          Int?
+  minOrderQuantity     Boolean               @default(false)
+  minQuantity          Int?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  userId               String
+  categoryProducts     CategoryProduct[]
+  orderItems           OrderItem[]
+  images               ProductImage[]
+  options              ProductOption[]
+  variants             ProductVariant[]
   productGlobalOptions ProductGlobalOption[]
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("products")
 }
@@ -124,10 +123,10 @@ model ProductVariant {
   name          String
   value         String
   price         Float
-  originalPrice Float?      // Precio original para mostrar tachado
-  imageUrl      String?     // Imagen específica para esta variante
-  sku           String?     // SKU específico de la variante
-  stock         Int?        // Inventario específico de la variante
+  originalPrice Float? // Precio original para mostrar tachado
+  imageUrl      String? // Imagen específica para esta variante
+  sku           String? // SKU específico de la variante
+  stock         Int? // Inventario específico de la variante
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -139,35 +138,68 @@ model ProductVariant {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  status        OrderStatus @default(PENDING)
-  total         Float
-  customerEmail String?
-  customerName  String?
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  userId        String
-  items         OrderItem[]
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  status      OrderStatus @default(PENDING)
+  total       Float
+  subtotal    Float?
+  deliveryFee Float       @default(0)
+
+  // Información del cliente
+  customerName     String
+  customerEmail    String?
+  customerWhatsApp String
+
+  // Delivery
+  deliveryMethod String // 'pickup' | 'delivery'
+  address        Json? // Objeto con calle, colonia, ciudad, etc.
+
+  // Pago
+  paymentMethod String // 'cash' | 'transfer'
+  amountPaid    Float?
+  change        Float?
+
+  // Otros
+  notes       String?
+  trackingUrl String?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  userId    String
+  items     OrderItem[]
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("orders")
 }
 
 model OrderItem {
-  id          String          @id @default(cuid())
+  id          String            @id @default(cuid())
   quantity    Int
   price       Float
   variantName String?
-  createdAt   DateTime        @default(now())
+  createdAt   DateTime          @default(now())
   orderId     String
   productId   String
   variantId   String?
-  variant     ProductVariant? @relation(fields: [variantId], references: [id])
-  product     Product         @relation(fields: [productId], references: [id])
-  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  options     OrderItemOption[]
+  variant     ProductVariant?   @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
+}
+
+model OrderItemOption {
+  id          String    @id @default(cuid())
+  orderItemId String
+  optionName  String // Nombre de la opción (ej: "Tamaño")
+  choiceName  String // Nombre de la elección (ej: "Grande")
+  price       Float // Precio de esta opción
+  quantity    Int       @default(1)
+  createdAt   DateTime  @default(now())
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@map("order_item_options")
 }
 
 model Invitation {
@@ -218,68 +250,69 @@ model ProductOptionChoice {
 }
 
 model StoreSettings {
-  id                          String         @id @default(cuid())
-  userId                      String         @unique
-  storeName                   String         @default("Mi Tienda")
-  storeSlug                   String         @unique
+  id                          String  @id @default(cuid())
+  userId                      String  @unique
+  storeName                   String  @default("Mi Tienda")
+  storeSlug                   String  @unique
   email                       String?
   address                     String?
   whatsappMainNumber          String?
   phoneNumber                 String?
-  country                     String         @default("Mexico")
-  language                    String         @default("es")
-  currency                    String         @default("MXN")
-  distanceUnit                String         @default("km")
-  mapProvider                 String         @default("openstreetmap")
+  country                     String  @default("Mexico")
+  language                    String  @default("es")
+  currency                    String  @default("MXN")
+  distanceUnit                String  @default("km")
+  mapProvider                 String  @default("openstreetmap")
   googleMapsApiKey            String?
-  taxRate                     Float          @default(0.0)
-  taxMethod                   String         @default("included")
+  taxRate                     Float   @default(0.0)
+  taxMethod                   String  @default("included")
   tagId                       String?
-  enableBusinessHours         Boolean        @default(false)
-  disableCheckoutOutsideHours Boolean        @default(false)
+  enableBusinessHours         Boolean @default(false)
+  disableCheckoutOutsideHours Boolean @default(false)
   businessHours               Json?
   instagramLink               String?
   facebookLink                String?
-  deliveryEnabled             Boolean        @default(false)
-  useBasePrice                Boolean        @default(false)
+  deliveryEnabled             Boolean @default(false)
+  useBasePrice                Boolean @default(false)
   baseDeliveryPrice           Float?
   baseDeliveryThreshold       Float?
-  
+
   // Configuración de métodos de cálculo de envío
-  deliveryCalculationMethod   String?        // 'distance', 'zones', 'manual'
-  pricePerKm                  Float?         // Precio por kilómetro
-  maxDeliveryDistance         Float?         // Distancia máxima de entrega
-  manualDeliveryMessage       String?        // Mensaje para cálculo manual
-  unifiedSchedule             Json?
-  deliveryScheduleEnabled     Boolean        @default(false)
-  scheduleType                String?
-  advanceDays                 Int            @default(1)
-  serviceHours                Json?
-  paymentsEnabled             Boolean        @default(true)
-  
+  deliveryCalculationMethod String? // 'distance', 'zones', 'manual'
+  pricePerKm                Float? // Precio por kilómetro
+  minDeliveryFee            Float? // Costo mínimo de envío (aplica cuando distancia * pricePerKm < minDeliveryFee)
+  maxDeliveryDistance       Float? // Distancia máxima de entrega
+  manualDeliveryMessage     String? // Mensaje para cálculo manual
+  unifiedSchedule           Json?
+  deliveryScheduleEnabled   Boolean @default(false)
+  scheduleType              String?
+  advanceDays               Int     @default(1)
+  serviceHours              Json?
+  paymentsEnabled           Boolean @default(true)
+
   // Configuración de métodos de pago
-  cashPaymentEnabled          Boolean        @default(true)
-  cashPaymentInstructions     String?        // Instrucciones para pago en efectivo
-  bankTransferEnabled         Boolean        @default(false)
-  bankName                    String?        // Nombre del banco
-  accountNumber               String?       // Número de cuenta
-  accountHolder               String?       // Titular de la cuenta
-  clabe                       String?       // CLABE interbancaria
-  transferInstructions        String?       // Instrucciones para transferencia
-  paymentInstructions         String?       // Instrucciones generales de pago
-  
-  storeActive                 Boolean        @default(false)
-  passwordProtected           Boolean        @default(false)
-  accessPassword              String?
-  
+  cashPaymentEnabled      Boolean @default(true)
+  cashPaymentInstructions String? // Instrucciones para pago en efectivo
+  bankTransferEnabled     Boolean @default(false)
+  bankName                String? // Nombre del banco
+  accountNumber           String? // Número de cuenta
+  accountHolder           String? // Titular de la cuenta
+  clabe                   String? // CLABE interbancaria
+  transferInstructions    String? // Instrucciones para transferencia
+  paymentInstructions     String? // Instrucciones generales de pago
+
+  storeActive       Boolean @default(false)
+  passwordProtected Boolean @default(false)
+  accessPassword    String?
+
   // Imágenes de la tienda
-  bannerImage                 String?        // URL del banner
-  profileImage                String?        // URL de la foto de perfil
-  
-  createdAt                   DateTime       @default(now())
-  updatedAt                   DateTime       @updatedAt
-  deliveryZones               DeliveryZone[]
-  user                        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bannerImage  String? // URL del banner
+  profileImage String? // URL de la foto de perfil
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deliveryZones DeliveryZone[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("store_settings")
 }
@@ -327,95 +360,98 @@ enum InvitationStatus {
 
 enum DeliveryType {
   FIXED
+  DISTANCE
+  ZONES
+  MANUAL
 }
 
 model GlobalOption {
-  id            String                @id @default(cuid())
-  name          String
-  type          String
-  description   String?
-  maxSelections Int?
-  minSelections Int?
-  isRequired    Boolean               @default(false)
-  isActive      Boolean               @default(true)
-  order         Int                   @default(0)
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  userId        String
-  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  choices       GlobalOptionChoice[]
+  id                   String                    @id @default(cuid())
+  name                 String
+  type                 String
+  description          String?
+  maxSelections        Int?
+  minSelections        Int?
+  isRequired           Boolean                   @default(false)
+  isActive             Boolean                   @default(true)
+  order                Int                       @default(0)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  userId               String
+  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choices              GlobalOptionChoice[]
   productGlobalOptions ProductGlobalOption[]
-  availability  GlobalOptionAvailability?
+  availability         GlobalOptionAvailability?
 
   @@map("global_options")
 }
 
 model GlobalOptionChoice {
-  id            String        @id @default(cuid())
-  name          String
-  price         Float         @default(0)
-  order         Int           @default(0)
-  createdAt     DateTime      @default(now())
+  id             String                          @id @default(cuid())
+  name           String
+  price          Float                           @default(0)
+  order          Int                             @default(0)
+  createdAt      DateTime                        @default(now())
   globalOptionId String
-  globalOption  GlobalOption  @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
-  availability  GlobalOptionChoiceAvailability?
+  globalOption   GlobalOption                    @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
+  availability   GlobalOptionChoiceAvailability?
 
   @@map("global_option_choices")
 }
 
 model ProductGlobalOption {
-  id              String      @id @default(cuid())
-  productId       String
-  globalOptionId  String
-  maxSelections   Int?
-  minSelections   Int?
-  isRequired      Boolean     @default(false)
-  order           Int         @default(0)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  globalOption    GlobalOption @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  productId      String
+  globalOptionId String
+  maxSelections  Int?
+  minSelections  Int?
+  isRequired     Boolean      @default(false)
+  order          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  globalOption   GlobalOption @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
 
   @@unique([productId, globalOptionId])
   @@map("product_global_options")
 }
 
 model GlobalOptionAvailability {
-  id              String      @id @default(cuid())
-  globalOptionId  String     @unique
-  isAvailable     Boolean     @default(true)
-  reason          String?    // "Agotado", "Mantenimiento", etc.
-  updatedAt       DateTime    @updatedAt
-  globalOption    GlobalOption @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  globalOptionId String       @unique
+  isAvailable    Boolean      @default(true)
+  reason         String? // "Agotado", "Mantenimiento", etc.
+  updatedAt      DateTime     @updatedAt
+  globalOption   GlobalOption @relation(fields: [globalOptionId], references: [id], onDelete: Cascade)
 
   @@map("global_option_availability")
 }
 
 model GlobalOptionChoiceAvailability {
-  id              String      @id @default(cuid())
-  choiceId        String      @unique
-  isAvailable     Boolean     @default(true)
-  reason          String?    // "Agotado", "Sin stock", etc.
-  updatedAt       DateTime    @updatedAt
-  choice          GlobalOptionChoice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+  id          String             @id @default(cuid())
+  choiceId    String             @unique
+  isAvailable Boolean            @default(true)
+  reason      String? // "Agotado", "Sin stock", etc.
+  updatedAt   DateTime           @updatedAt
+  choice      GlobalOptionChoice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
 
   @@map("global_option_choice_availability")
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  userId      String?
-  action      String
-  resource    String
-  resourceId  String?
-  details     String?  // JSON string
-  ipAddress   String?
-  userAgent   String?
-  success     Boolean
+  id           String   @id @default(cuid())
+  userId       String?
+  action       String
+  resource     String
+  resourceId   String?
+  details      String? // JSON string
+  ipAddress    String?
+  userAgent    String?
+  success      Boolean
   errorMessage String?
-  createdAt   DateTime @default(now())
-  
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
 }

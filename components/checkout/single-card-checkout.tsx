@@ -10,14 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { 
-  MapPin, 
-  Home, 
-  Store, 
-  CreditCard, 
-  Banknote, 
-  Smartphone, 
-  User, 
+import {
+  MapPin,
+  Home,
+  Store,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  User,
   Loader2,
   AlertCircle,
   Copy,
@@ -26,11 +26,8 @@ import {
   Truck
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { 
-  getCurrentLocation, 
-  validateWhatsAppNumber
-} from '@/lib/geolocation'
-import LeafletInteractiveMap from '@/components/map/leaflet-interactive-map'
+import { validateWhatsAppNumber } from '@/lib/geolocation'
+import DeliveryAddressSection from './delivery-address-section'
 
 interface CartItem {
   id: string
@@ -54,13 +51,26 @@ interface StoreInfo {
   clabe: string
   transferInstructions: string
   paymentInstructions: string
+  cashPaymentInstructions: string
   deliveryFee: number
   freeDeliveryMinAmount?: number
   freeDeliveryMinItems?: number
-  deliveryCalculationMethod?: string
+  deliveryCalculationMethod: 'distance' | 'zones' | 'manual'
   pricePerKm?: number
+  minDeliveryFee?: number
   maxDeliveryDistance?: number
   manualDeliveryMessage?: string
+}
+
+interface DeliveryZone {
+  id: string
+  name: string
+  type: string
+  fixedPrice?: number
+  freeDeliveryThreshold?: number
+  estimatedTime?: number
+  description?: string
+  order: number
 }
 
 interface SingleCardCheckoutProps {
@@ -84,6 +94,8 @@ export default function SingleCardCheckout({
 }: SingleCardCheckoutProps) {
   // Estados principales
   const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null)
+  const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>([])
+  const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // Debug: Log de datos recibidos (solo una vez)
@@ -106,8 +118,6 @@ export default function SingleCardCheckout({
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup')
 
   // Ubicación
-  const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null)
-  const [selectedAddress, setSelectedAddress] = useState('')
   const [addressFields, setAddressFields] = useState({
     street: '',
     number: '',
@@ -121,7 +131,7 @@ export default function SingleCardCheckout({
     houseType: '',
     coordinates: null as { lat: number; lng: number } | null
   })
-  
+
   // Estados para cálculo de envío
   const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState(0)
   const [deliveryCalculation, setDeliveryCalculation] = useState<{
@@ -129,8 +139,10 @@ export default function SingleCardCheckout({
     method?: string
     message?: string
     isWithinRange?: boolean
+    zone?: string
+    price?: number
+    estimatedTime?: number
   } | null>(null)
-  const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
 
   // Método de pago
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash')
@@ -141,11 +153,9 @@ export default function SingleCardCheckout({
   const [observations, setObservations] = useState('')
 
   // Estados de UI
-  const [showMap, setShowMap] = useState(false)
-  const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
-  // Cargar información de la tienda
+  // Cargar información de la tienda y zonas
   useEffect(() => {
     const fetchStoreInfo = async () => {
       try {
@@ -153,6 +163,15 @@ export default function SingleCardCheckout({
         if (response.ok) {
           const data = await response.json()
           setStoreInfo(data)
+
+          // Si el método es por zonas, cargar las zonas
+          if (data.deliveryCalculationMethod === 'zones') {
+            const zonesResponse = await fetch(`/api/store/${storeSlug}/delivery-zones`)
+            if (zonesResponse.ok) {
+              const zonesData = await zonesResponse.json()
+              setDeliveryZones(zonesData.deliveryZones || [])
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching store info:', error)
@@ -164,110 +183,6 @@ export default function SingleCardCheckout({
 
   // Validar WhatsApp
   const validateWhatsApp = validateWhatsAppNumber
-
-  // Captura de ubicación GPS
-  const handleGetLocation = async () => {
-    setIsGettingLocation(true)
-    
-    try {
-      const coordinates = await getCurrentLocation()
-      
-      // Crear campos de dirección básicos
-      const basicAddress = {
-        street: 'Dirección obtenida por GPS',
-        number: '',
-        neighborhood: 'Colonia',
-        city: 'Ciudad',
-        state: 'Estado',
-        zipCode: '',
-        reference: '',
-        street1: '',
-        street2: '',
-        houseType: '',
-        coordinates: coordinates
-      }
-      
-      setAddressFields(basicAddress)
-      setSelectedLocation([coordinates.lat, coordinates.lng])
-      setSelectedAddress(`Ubicación GPS: ${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`)
-      setShowMap(true)
-      
-      toast.success('Ubicación obtenida correctamente')
-    } catch (error) {
-      console.error('Error getting location:', error)
-      toast.error(error instanceof Error ? error.message : 'No se pudo obtener la ubicación')
-    } finally {
-      setIsGettingLocation(false)
-    }
-  }
-
-  // Manejar selección de ubicación desde el mapa
-  const handleLocationSelect = (address: string, coordinates: { lat: number; lng: number }) => {
-    setSelectedAddress(address)
-    setSelectedLocation([coordinates.lat, coordinates.lng])
-    
-    // Parsear la dirección para llenar campos automáticamente
-    const addressParts = address.split(',')
-    setAddressFields(prev => ({
-      ...prev,
-      coordinates,
-      street: addressParts[0]?.trim() || '',
-      neighborhood: addressParts[1]?.trim() || '',
-      city: addressParts[2]?.trim() || '',
-      state: addressParts[3]?.trim() || '',
-      // Mantener campos que el usuario pueda haber editado
-      number: prev.number || '',
-      reference: prev.reference || '',
-      street1: prev.street1 || '',
-      street2: prev.street2 || '',
-      houseType: prev.houseType || ''
-    }))
-    
-    // Calcular precio de envío automáticamente
-    calculateDeliveryPrice(coordinates.lat, coordinates.lng)
-  }
-  
-  // Función para calcular precio de envío
-  const calculateDeliveryPrice = async (clientLat: number, clientLng: number) => {
-    setIsCalculatingDelivery(true)
-    
-    try {
-      const response = await fetch('/api/delivery/calculate-price', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clientLat,
-          clientLng,
-          storeSlug
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('🚚 Cálculo de envío recibido:', data)
-        
-        setDeliveryCalculation(data)
-        setCalculatedDeliveryFee(data.price || 0)
-        
-        if (!data.isWithinRange) {
-          toast.error(data.message)
-        } else {
-          toast.success(data.message)
-        }
-      } else {
-        const error = await response.json()
-        console.error('Error calculando envío:', error)
-        toast.error(error.message || 'Error al calcular el envío')
-      }
-    } catch (error) {
-      console.error('Error calculando envío:', error)
-      toast.error('Error al calcular el envío')
-    } finally {
-      setIsCalculatingDelivery(false)
-    }
-  }
 
   // Calcular cambio
   useEffect(() => {
@@ -407,17 +322,18 @@ export default function SingleCardCheckout({
     // Información de envío según el método configurado
     if (orderData.deliveryMethod === 'delivery') {
       if (deliveryCalculation) {
-        switch (deliveryCalculation.method) {
+        const calc = deliveryCalculation as any // Type assertion for legacy delivery calculation
+        switch (calc.method) {
           case 'distance':
-            if (deliveryCalculation.price > 0) {
-              message += `• Envío (${deliveryCalculation.distance} km): $${deliveryCalculation.price.toFixed(2)}\n`
+            if (calc.price > 0) {
+              message += `• Envío (${calc.distance} km): $${calc.price.toFixed(2)}\n`
             } else {
               message += `• Envío: Gratis\n`
             }
             break
           case 'zones':
-            if (deliveryCalculation.price > 0) {
-              message += `• Envío por zona: $${deliveryCalculation.price.toFixed(2)}\n`
+            if (calc.price > 0) {
+              message += `• Envío por zona: $${calc.price.toFixed(2)}\n`
             } else {
               message += `• Envío por zona: Gratis\n`
             }
@@ -475,8 +391,7 @@ export default function SingleCardCheckout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center p-0 md:p-4 pt-0 md:pt-8">
-      <Card className="w-full max-w-4xl mx-auto max-h-screen md:max-h-[90vh] overflow-hidden flex flex-col md:w-[70%]">
+      <Card className="w-full h-screen md:h-auto md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[90vh] overflow-hidden flex flex-col md:rounded-lg">
         <CardHeader className="flex flex-row items-center justify-between flex-shrink-0">
           <CardTitle className="text-2xl font-bold">Finalizar Pedido</CardTitle>
           {onClose && (
@@ -558,15 +473,10 @@ export default function SingleCardCheckout({
                       <div>
                         <p className="font-medium">Entrega a domicilio</p>
                         <p className="text-sm text-gray-600">
-                          {isCalculatingDelivery ? (
-                            <span className="flex items-center gap-1">
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              Calculando...
-                            </span>
-                          ) : deliveryCalculation ? (
+                          {deliveryCalculation && calculatedDeliveryFee > 0 ? (
                             `+$${calculatedDeliveryFee.toFixed(2)} de envío`
                           ) : (
-                            `+$${deliveryFee.toFixed(2)} de envío`
+                            'Costo calculado al seleccionar dirección'
                           )}
                         </p>
                       </div>
@@ -577,129 +487,29 @@ export default function SingleCardCheckout({
             </div>
           </div>
 
-          {/* Ubicación de Entrega - Solo si es delivery */}
-          {deliveryMethod === 'delivery' && (
+          {/* Ubicación de Entrega - Componente dinámico según método */}
+          {deliveryMethod === 'delivery' && storeInfo && (
             <>
               <Separator />
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Ubicación de Entrega
-                </h3>
-                
-                <Button 
-                  onClick={handleGetLocation}
-                  disabled={isGettingLocation}
-                  className="w-full h-12 text-base"
-                  size="lg"
-                >
-                  {isGettingLocation ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Obteniendo ubicación...
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Obtener mi ubicación
-                    </>
-                  )}
-                </Button>
-                
-                {/* Mapa Interactivo con Leaflet */}
-                {showMap && (
-                  <div className="space-y-4 mb-8">
-                    <LeafletInteractiveMap
-                      onLocationSelect={handleLocationSelect}
-                      initialCoordinates={selectedLocation ? { lat: selectedLocation[0], lng: selectedLocation[1] } : undefined}
-                      className="h-80 w-full"
-                    />
-                  </div>
-                )}
-                
-                {/* Campos de Dirección */}
-                {addressFields.street && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="street" className="text-sm font-medium">Calle *</Label>
-                        <Input
-                          id="street"
-                          value={addressFields.street}
-                          onChange={(e) => setAddressFields(prev => ({ ...prev, street: e.target.value }))}
-                          placeholder="Nombre de la calle"
-                          className="mt-1 h-12 text-base"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="number" className="text-sm font-medium">Número *</Label>
-                        <Input
-                          id="number"
-                          value={addressFields.number}
-                          onChange={(e) => setAddressFields(prev => ({ ...prev, number: e.target.value }))}
-                          placeholder="123"
-                          className="mt-1 h-12 text-base"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="neighborhood" className="text-sm font-medium">Colonia *</Label>
-                        <Input
-                          id="neighborhood"
-                          value={addressFields.neighborhood}
-                          onChange={(e) => setAddressFields(prev => ({ ...prev, neighborhood: e.target.value }))}
-                          placeholder="Colonia"
-                          className="mt-1 h-12 text-base"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="houseType" className="text-sm font-medium">Tipo de vivienda *</Label>
-                        <Select value={addressFields.houseType} onValueChange={(value) => setAddressFields(prev => ({ ...prev, houseType: value }))}>
-                          <SelectTrigger className="mt-1 h-12 text-base">
-                            <SelectValue placeholder="Selecciona el tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Casa">Casa</SelectItem>
-                            <SelectItem value="Departamento">Departamento</SelectItem>
-                            <SelectItem value="Edificio">Edificio</SelectItem>
-                            <SelectItem value="Negocio">Negocio/Local</SelectItem>
-                            <SelectItem value="Otro">Otro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="street1" className="text-sm font-medium">Entre calles</Label>
-                        <Input
-                          id="street1"
-                          value={addressFields.street1}
-                          onChange={(e) => setAddressFields(prev => ({ ...prev, street1: e.target.value }))}
-                          placeholder="Calle 1 y Calle 2"
-                          className="mt-1 h-12 text-base"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="reference" className="text-sm font-medium">Referencias</Label>
-                        <Input
-                          id="reference"
-                          value={addressFields.reference}
-                          onChange={(e) => setAddressFields(prev => ({ ...prev, reference: e.target.value }))}
-                          placeholder="Portón verde, casa esquina, etc."
-                          className="mt-1 h-12 text-base"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <DeliveryAddressSection
+                deliveryMethod={deliveryMethod}
+                calculationMethod={storeInfo.deliveryCalculationMethod}
+                storeSlug={storeSlug}
+                deliveryZones={deliveryZones}
+                pricePerKm={storeInfo.pricePerKm}
+                minDeliveryFee={storeInfo.minDeliveryFee}
+                maxDeliveryDistance={storeInfo.maxDeliveryDistance}
+                manualDeliveryMessage={storeInfo.manualDeliveryMessage}
+                subtotal={subtotal}
+                addressFields={addressFields}
+                setAddressFields={setAddressFields}
+                selectedZone={selectedZone}
+                setSelectedZone={setSelectedZone}
+                calculatedDeliveryFee={calculatedDeliveryFee}
+                setCalculatedDeliveryFee={setCalculatedDeliveryFee}
+                deliveryCalculation={deliveryCalculation}
+                setDeliveryCalculation={setDeliveryCalculation}
+              />
             </>
           )}
 
@@ -924,15 +734,10 @@ export default function SingleCardCheckout({
                 <div className="flex justify-between">
                   <span>Envío:</span>
                   <span>
-                    {isCalculatingDelivery ? (
-                      <span className="flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Calculando...
-                      </span>
-                    ) : deliveryCalculation ? (
+                    {deliveryCalculation && calculatedDeliveryFee >= 0 ? (
                       `$${calculatedDeliveryFee.toFixed(2)}`
                     ) : (
-                      `$${(deliveryFee || 0).toFixed(2)}`
+                      '$0.00'
                     )}
                   </span>
                 </div>
@@ -941,15 +746,10 @@ export default function SingleCardCheckout({
                 <span>Total:</span>
                 <span>
                   {deliveryMethod === 'delivery' ? (
-                    isCalculatingDelivery ? (
-                      <span className="flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Calculando...
-                      </span>
-                    ) : deliveryCalculation ? (
+                    deliveryCalculation && calculatedDeliveryFee >= 0 ? (
                       `$${((subtotal || 0) + calculatedDeliveryFee).toFixed(2)}`
                     ) : (
-                      `$${(total || 0).toFixed(2)}`
+                      `$${(subtotal || 0).toFixed(2)}`
                     )
                   ) : (
                     `$${(subtotal || 0).toFixed(2)}`
@@ -979,6 +779,5 @@ export default function SingleCardCheckout({
           </Button>
         </CardContent>
       </Card>
-    </div>
   )
 }

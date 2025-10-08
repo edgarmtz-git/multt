@@ -164,9 +164,8 @@ export async function POST(request: NextRequest) {
           description: description || '',
           price,
           isActive: isActive !== undefined ? isActive : true,
-          deliveryHome: deliveryMethods?.pickup !== undefined ? deliveryMethods.pickup : true,
-          deliveryStore: deliveryMethods?.shipping !== undefined ? deliveryMethods.shipping : false,
-          deliveryBoth: (deliveryMethods?.pickup && deliveryMethods?.shipping) || false,
+          allowPickup: deliveryMethods?.pickup !== undefined ? deliveryMethods.pickup : true,
+          allowShipping: deliveryMethods?.shipping !== undefined ? deliveryMethods.shipping : true,
           // Sistema de inventario
           trackQuantity: inventory?.trackQuantity || false,
           stock: inventory?.stock || 0,

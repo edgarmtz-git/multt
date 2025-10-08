@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; choiceId: string } }
+  { params }: { params: Promise<{ id: string; choiceId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -13,17 +13,18 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id, choiceId } = await params
     const { isAvailable, reason } = await request.json()
 
     // Verificar que la opción global y la elección pertenecen al usuario
     const globalOption = await prisma.globalOption.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id
       },
       include: {
         choices: {
-          where: { id: params.choiceId }
+          where: { id: choiceId }
         }
       }
     })
@@ -34,14 +35,14 @@ export async function PUT(
 
     // Crear o actualizar la disponibilidad de la elección
     const availability = await prisma.globalOptionChoiceAvailability.upsert({
-      where: { choiceId: params.choiceId },
+      where: { choiceId },
       update: {
         isAvailable,
         reason: reason || null,
         updatedAt: new Date()
       },
       create: {
-        choiceId: params.choiceId,
+        choiceId,
         isAvailable,
         reason: reason || null
       }

@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 // GET - Obtener configuración de contacto para una tienda
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     // Buscar la tienda por slug
     const store = await prisma.storeSettings.findUnique({

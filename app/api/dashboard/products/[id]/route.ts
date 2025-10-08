@@ -170,9 +170,8 @@ export async function PUT(
           description: description || '',
           price,
           isActive: isActive !== undefined ? isActive : existingProduct.isActive,
-          deliveryHome: deliveryMethods?.pickup !== undefined ? deliveryMethods.pickup : existingProduct.deliveryHome,
-          deliveryStore: deliveryMethods?.shipping !== undefined ? deliveryMethods.shipping : existingProduct.deliveryStore,
-          deliveryBoth: (deliveryMethods?.pickup && deliveryMethods?.shipping) || existingProduct.deliveryBoth,
+          allowPickup: deliveryMethods?.pickup !== undefined ? deliveryMethods.pickup : existingProduct.allowPickup,
+          allowShipping: deliveryMethods?.shipping !== undefined ? deliveryMethods.shipping : existingProduct.allowShipping,
           // Sistema de inventario
           trackQuantity: inventory?.trackQuantity !== undefined ? inventory.trackQuantity : existingProduct.trackQuantity,
           stock: inventory?.stock !== undefined ? inventory.stock : existingProduct.stock,

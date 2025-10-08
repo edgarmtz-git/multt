@@ -33,6 +33,8 @@ import { CartFab } from '@/components/menu/cart-fab'
 import { InstallPrompt } from '@/components/pwa/install-prompt'
 import { ServiceWorkerRegister } from '@/components/pwa/service-worker-register'
 import SingleCardCheckout from '@/components/checkout/single-card-checkout'
+import { StoreNotFound } from '@/components/store/store-not-found'
+import { StoreInactive } from '@/components/store/store-inactive'
 
 interface StoreInfo {
   id: string
@@ -118,6 +120,8 @@ export default function CustomerMenuPage() {
   const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [storeStatus, setStoreStatus] = useState<'loading' | 'found' | 'not-found' | 'inactive' | 'suspended'>('loading')
+  const [inactiveReason, setInactiveReason] = useState<string | undefined>()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
@@ -206,100 +210,65 @@ export default function CustomerMenuPage() {
   const loadStoreData = async () => {
     try {
       setLoading(true)
+      setStoreStatus('loading')
       console.log('🔄 Loading store data for:', clienteId)
-      
+
       // Cargar información de la tienda
       const storeResponse = await fetch(`/api/tienda/${clienteId}`)
       console.log('🏪 Store response:', storeResponse.status)
+
       if (storeResponse.ok) {
+        // Tienda encontrada y activa
         const storeData = await storeResponse.json()
         console.log('🏪 Store data:', storeData)
         setStoreInfo(storeData)
+        setStoreStatus('found')
         setIsOpen(checkIfOpen(storeData))
-      } else {
-        console.error('❌ Store response error:', storeResponse.status)
-        // Forzar datos de prueba si falla
-        setStoreInfo({
-          id: 'test',
-          storeName: 'Nanixhe Chicken',
-          storeSlug: 'mi-tienda-digital',
-          email: 'test@test.com',
-          address: null,
-          whatsappMainNumber: '+1234567890',
-          country: 'MX',
-          currency: 'MXN',
-          deliveryEnabled: false,
-          useBasePrice: false,
-          baseDeliveryPrice: 0,
-          baseDeliveryThreshold: 0,
-          deliveryScheduleEnabled: false,
-          scheduleType: 'date',
-          advanceDays: 1,
-          serviceHours: {},
-          unifiedSchedule: {},
-          storeActive: true
-        })
-      }
 
-      // Cargar categorías y productos
-      const categoriesResponse = await fetch(`/api/tienda/${clienteId}/categories`)
-      console.log('📁 Categories response:', categoriesResponse.status)
-      if (categoriesResponse.ok) {
-        const categoriesData = await categoriesResponse.json()
-        console.log('📁 Categories data:', categoriesData)
-        setCategories(categoriesData)
+        // Cargar categorías y productos
+        const categoriesResponse = await fetch(`/api/tienda/${clienteId}/categories`)
+        console.log('📁 Categories response:', categoriesResponse.status)
+
+        if (categoriesResponse.ok) {
+          const categoriesData = await categoriesResponse.json()
+          console.log('📁 Categories data:', categoriesData)
+          setCategories(categoriesData)
+        } else {
+          // Tienda sin categorías (válido)
+          console.warn('⚠️ No categories found for store')
+          setCategories([])
+        }
+      } else if (storeResponse.status === 404) {
+        // Tienda no encontrada
+        console.error('❌ Store not found:', clienteId)
+        setStoreStatus('not-found')
+        setStoreInfo(null)
+      } else if (storeResponse.status === 403) {
+        // Tienda inactiva o suspendida
+        const errorData = await storeResponse.json()
+        console.error('❌ Store unavailable:', errorData)
+
+        if (errorData.reason === 'suspended') {
+          setStoreStatus('suspended')
+        } else {
+          setStoreStatus('inactive')
+        }
+
+        setStoreInfo({
+          ...({} as StoreInfo),
+          storeName: errorData.storeName || 'Tienda'
+        })
+        setInactiveReason(errorData.reason)
       } else {
-        console.error('❌ Categories response error:', categoriesResponse.status)
-        // Forzar datos de prueba si falla
-        setCategories([
-          {
-            id: '1',
-            name: 'Bebidas',
-            description: 'Bebidas frías y calientes',
-            color: '#3B82F6',
-            icon: '🥤',
-            order: 1,
-            isActive: true,
-            imageUrl: null,
-            isVisibleInStore: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            userId: 'test',
-            products: [
-              {
-                id: '1',
-                name: 'Café Americano',
-                description: 'Café negro americano',
-                price: 35,
-                stock: 0,
-                imageUrl: null,
-                isActive: true,
-                hasVariants: false,
-                variantType: null,
-                variantLabel: null,
-                deliveryHome: true,
-                deliveryStore: false,
-                deliveryBoth: true,
-                trackQuantity: false,
-                dailyCapacity: false,
-                maxDailySales: null,
-                maxOrderQuantity: false,
-                maxQuantity: null,
-                minOrderQuantity: false,
-                minQuantity: null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                userId: 'test',
-                variants: [],
-                options: []
-              }
-            ]
-          }
-        ])
+        // Error del servidor
+        console.error('❌ Server error:', storeResponse.status)
+        toast.error('Error al cargar la tienda')
+        setStoreStatus('not-found')
       }
     } catch (error) {
       console.error('❌ Error loading store data:', error)
-      toast.error('Error al cargar la tienda')
+      toast.error('Error de conexión')
+      setStoreStatus('not-found')
     } finally {
       setLoading(false)
     }
@@ -409,7 +378,7 @@ export default function CustomerMenuPage() {
   }
 
   const handleCall = () => {
-    if (storeInfo.whatsappMainNumber) {
+    if (storeInfo?.whatsappMainNumber) {
       window.open(`tel:${storeInfo.whatsappMainNumber}`, '_self')
     } else {
       toast.error('Número de teléfono no disponible')
@@ -417,7 +386,7 @@ export default function CustomerMenuPage() {
   }
 
   const handleWhatsApp = () => {
-    if (storeInfo.whatsappMainNumber) {
+    if (storeInfo?.whatsappMainNumber) {
       const message = `Hola! Me interesa hacer un pedido de ${storeInfo.storeName}`
       window.open(`https://wa.me/${storeInfo.whatsappMainNumber}?text=${encodeURIComponent(message)}`, '_blank')
     } else {
@@ -426,11 +395,25 @@ export default function CustomerMenuPage() {
   }
 
   const handleMapClick = () => {
-    if (storeInfo.address?.latitude && storeInfo.address?.longitude) {
+    if (storeInfo?.address?.latitude && storeInfo?.address?.longitude) {
       setShowMapModal(true)
     } else {
       toast.error('Ubicación no disponible')
     }
+  }
+
+  const handleGoogleMapsClick = () => {
+    if (!storeInfo?.address?.latitude || !storeInfo?.address?.longitude) {
+      toast.error('Coordenadas no disponibles')
+      return
+    }
+
+    const { latitude, longitude } = storeInfo.address
+    
+    // URL universal que funciona en PC y móviles
+    const mapsUrl = `https://www.google.com/maps/@${latitude},${longitude},21z`
+    
+    window.open(mapsUrl, '_blank')
   }
 
   const filteredCategories = categories.filter(category => 
@@ -471,16 +454,24 @@ export default function CustomerMenuPage() {
     )
   }
 
-  if (!storeInfo || !storeInfo.storeActive) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🏪</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tienda no disponible</h1>
-          <p className="text-gray-600">Esta tienda no está disponible en este momento</p>
-        </div>
-      </div>
-    )
+  // Tienda no encontrada
+  if (storeStatus === 'not-found') {
+    return <StoreNotFound slug={clienteId} />
+  }
+
+  // Tienda suspendida
+  if (storeStatus === 'suspended') {
+    return <StoreInactive storeName={storeInfo?.storeName} reason="suspended" />
+  }
+
+  // Tienda inactiva
+  if (storeStatus === 'inactive') {
+    return <StoreInactive storeName={storeInfo?.storeName} reason="inactive" />
+  }
+
+  // Sin datos de tienda
+  if (!storeInfo) {
+    return <StoreNotFound slug={clienteId} />
   }
 
   return (
@@ -746,29 +737,29 @@ export default function CustomerMenuPage() {
         cart={cart}
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
+        onUpdateQuantity={updateQuantity as any}
+        onRemoveItem={removeFromCart as any}
         onCheckout={handleCheckout}
       />
 
       {/* Product Modal */}
       {showProductModal && selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
+        <ProductModal  // @ts-ignore: Type conflicts between Prisma-generated and component types
+          product={selectedProduct as any}
           isOpen={showProductModal}
           onClose={() => {
             setShowProductModal(false)
             setSelectedProduct(null)
           }}
-          onAddToCart={addToCart}
+          onAddToCart={addToCart as any}
         />
       )}
 
       {/* Modal de Mapa */}
       {showMapModal && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b">
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+          <div className="bg-white w-full h-screen md:h-auto md:rounded-lg md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[80vh] overflow-hidden">
+            <div className="py-1 px-3 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Ubicación del local</h2>
                 <Button variant="ghost" onClick={() => setShowMapModal(false)}>
@@ -780,7 +771,7 @@ export default function CustomerMenuPage() {
             <div className="p-4">
               {storeInfo.address?.latitude && storeInfo.address?.longitude ? (
                 <div className="space-y-4">
-                  <div className="h-64 bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="h-96 bg-gray-100 rounded-lg overflow-hidden">
                     <iframe
                       src={`https://www.google.com/maps?q=${storeInfo.address.latitude},${storeInfo.address.longitude}&z=15&output=embed`}
                       width="100%"
@@ -794,16 +785,13 @@ export default function CustomerMenuPage() {
                   
                   <div className="text-sm text-gray-600">
                     <p className="font-medium">{storeInfo.address.street}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Coordenadas: {storeInfo.address.latitude.toFixed(6)}, {storeInfo.address.longitude.toFixed(6)}
-                    </p>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex justify-center">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => window.open(`https://www.google.com/maps?q=${storeInfo.address.latitude},${storeInfo.address.longitude}`, '_blank')}
+                      onClick={handleGoogleMapsClick}
                     >
                       <MapPin className="h-4 w-4 mr-2" />
                       Abrir en Google Maps
@@ -823,8 +811,8 @@ export default function CustomerMenuPage() {
 
       {/* Modal de Horarios */}
       {showHoursModal && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden">
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+          <div className="bg-white w-full h-screen md:h-auto md:rounded-lg md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[80vh] overflow-hidden">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Horarios de Atención</h2>
@@ -922,7 +910,6 @@ export default function CustomerMenuPage() {
         const totals = calculateCartTotals()
         return (
           <div className="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
-            <div className="w-full max-w-4xl md:w-[90%]">
               <SingleCardCheckout
                 storeSlug={storeInfo.storeSlug}
                 cartItems={cart.map(item => ({
@@ -930,8 +917,8 @@ export default function CustomerMenuPage() {
                   name: item.product.name,
                   quantity: item.quantity,
                   price: item.price || 0,
-                  variantName: item.variantName,
-                  options: item.options
+                  variantName: (item as any).variantName,
+                  options: (item as any).options
                 }))}
                 subtotal={totals.subtotal}
                 deliveryFee={totals.deliveryFee}
@@ -939,15 +926,14 @@ export default function CustomerMenuPage() {
                 onOrderComplete={handleOrderComplete}
                 onClose={() => setShowCheckout(false)}
               />
-            </div>
           </div>
         )
       })()}
 
       {/* Order Confirmation Modal */}
       {completedOrder && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+          <div className="bg-white w-full h-screen md:h-auto md:rounded-lg md:max-w-3xl lg:max-w-4xl xl:max-w-5xl overflow-y-auto">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />

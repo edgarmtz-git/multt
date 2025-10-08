@@ -16,11 +16,21 @@ export async function GET(request: NextRequest) {
     const clients = await prisma.user.findMany({
       where: { role: 'CLIENT' },
       include: {
-        // Buscar invitación asociada por email
+        storeSettings: {
+          select: {
+            id: true,
+            storeName: true,
+            storeSlug: true,
+            storeActive: true,
+            whatsappMainNumber: true,
+            email: true
+          }
+        },
         _count: {
           select: {
             products: true,
-            orders: true
+            orders: true,
+            categories: true
           }
         }
       },
@@ -53,9 +63,11 @@ export async function GET(request: NextRequest) {
           createdAt: client.createdAt,
           updatedAt: client.updatedAt,
           invitation: invitation || null,
+          storeSettings: client.storeSettings || null,
           stats: {
             products: client._count.products,
-            orders: client._count.orders
+            orders: client._count.orders,
+            categories: client._count.categories
           }
         }
       })
