@@ -190,13 +190,13 @@ export function ProductForm({
     })) : [],
     inventory: {
       trackQuantity: data?.trackQuantity || false,
-      stock: initialData?.stock || 0,
-      dailyCapacity: initialData?.dailyCapacity || false,
-      maxDailySales: initialData?.maxDailySales || undefined,
-      maxOrderQuantity: initialData?.maxOrderQuantity || false,
-      maxQuantity: initialData?.maxQuantity || undefined,
-      minOrderQuantity: initialData?.minOrderQuantity || false,
-      minQuantity: initialData?.minQuantity || undefined
+      stock: initialData?.inventory?.stock || 0,
+      dailyCapacity: initialData?.inventory?.dailyCapacity || false,
+      maxDailySales: initialData?.inventory?.maxDailySales || undefined,
+      maxOrderQuantity: initialData?.inventory?.maxOrderQuantity || false,
+      maxQuantity: initialData?.inventory?.maxQuantity || undefined,
+      minOrderQuantity: initialData?.inventory?.minOrderQuantity || false,
+      minQuantity: initialData?.inventory?.minQuantity || undefined
     },
     tags: initialData?.tags || [],
     // Mapear categoryProducts a categoryId
