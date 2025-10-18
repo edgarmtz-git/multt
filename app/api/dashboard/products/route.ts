@@ -82,16 +82,16 @@ export async function GET(request: NextRequest) {
     })
 
     // Transformar productos para incluir información adicional
-    const transformedProducts = products.map(product => ({
+    const transformedProducts = products.map((product: any) => ({
       id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.images.find(img => img.isMain)?.url || product.images[0]?.url,
+      imageUrl: product.images.find((img: any) => img.isMain)?.url || product.images[0]?.url,
       isActive: product.isActive,
       isNew: new Date(product.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Últimos 7 días
       sku: product.variants.length > 0 ? product.variants[0].value : undefined,
       variants: product.variants,
-      categories: product.categoryProducts.map(cp => cp.category),
+      categories: product.categoryProducts.map((cp: any) => cp.category),
       createdAt: product.createdAt
     }))
 

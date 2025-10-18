@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transformar los datos para el frontend
-    const deliveryZones = storeSettings.deliveryZones.map(zone => ({
+    const deliveryZones = storeSettings.deliveryZones.map((zone: any) => ({
       ...zone
     }))
 

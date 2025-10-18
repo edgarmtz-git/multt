@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Para cada cliente, buscar su invitación
     const clientsWithInvitations = await Promise.all(
-      clients.map(async (client) => {
+      clients.map(async (client: any) => {
         const invitation = await prisma.invitation.findFirst({
           where: { clientEmail: client.email },
           select: {

@@ -67,7 +67,7 @@ export async function GET(
         trackingUrl: order.trackingUrl,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
-        items: order.items.map(item => ({
+        items: order.items.map((item: any) => ({
           id: item.id,
           productName: item.product.name,
           quantity: item.quantity,
