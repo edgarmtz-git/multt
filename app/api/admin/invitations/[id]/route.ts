@@ -26,15 +26,16 @@ export async function DELETE(
       return NextResponse.json({ message: 'Invitación no encontrada' }, { status: 404 })
     }
 
-    // Verificar que no esté ya usada
+    // No permitir eliminar invitaciones USED (preservar auditoría)
     if (invitation.status === 'USED') {
       return NextResponse.json(
-        { message: 'No se puede eliminar una invitación que ya ha sido usada' },
+        { message: 'No se puede eliminar una invitación que ya ha sido usada. Se debe mantener para auditoría.' },
         { status: 400 }
       )
     }
 
-    // Eliminar la invitación
+    // Permitir eliminar solo PENDING, EXPIRED, o CANCELLED
+    // Esto libera el slug para reutilización
     await prisma.invitation.delete({
       where: { id }
     })

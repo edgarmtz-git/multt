@@ -66,14 +66,14 @@ export async function POST(
       )
     }
 
-    // Verificar que el slug no esté en uso
-    const existingSlug = await prisma.user.findFirst({
-      where: { company: invitation.slug }
+    // Verificar que el slug no esté en uso en StoreSettings
+    const existingStoreSlug = await prisma.storeSettings.findFirst({
+      where: { storeSlug: invitation.slug }
     })
 
-    if (existingSlug) {
+    if (existingStoreSlug) {
       return NextResponse.json(
-        { message: 'Este slug ya está en uso' },
+        { message: 'Este slug ya está en uso. Contacta al administrador.' },
         { status: 400 }
       )
     }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getUserSlug } from '@/lib/get-user-slug'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 
@@ -119,11 +120,15 @@ export async function GET() {
     // Si no existe, crear configuración por defecto
     if (!settings) {
       console.log('📝 Creating default settings for user:', user.email)
+
+      // Obtener slug correcto desde invitación o generar uno apropiado
+      const slug = await getUserSlug(session.user.id, user.email)
+
       settings = await prisma.storeSettings.create({
         data: {
           userId: session.user.id,
           storeName: 'Mi Tienda',
-          storeSlug: `tienda-${Date.now()}`,
+          storeSlug: slug,
           country: 'Mexico',
           language: 'es',
           currency: 'MXN',
@@ -136,7 +141,7 @@ export async function GET() {
           paymentsEnabled: true,
           storeActive: true,
           passwordProtected: false,
-          
+
           // Configuración de envío por defecto
           deliveryCalculationMethod: 'manual',
           pricePerKm: 15,
@@ -144,6 +149,8 @@ export async function GET() {
           manualDeliveryMessage: 'El costo de envío se calculará al confirmar el pedido.'
         }
       })
+
+      console.log('✅ Auto-created StoreSettings with proper slug:', slug)
     }
 
     // Parsear JSON fields

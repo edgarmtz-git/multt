@@ -86,10 +86,22 @@ class AuditLogger {
       } else {
         console.log('🔍 AUDIT LOG:', JSON.stringify(entry, null, 2))
       }
-      
-      // Guardar en base de datos (si se implementa tabla de audit logs)
-      // await this.saveToDatabase(entry)
-      
+
+      // ✅ Guardar en base de datos
+      await prisma.auditLog.create({
+        data: {
+          userId: entry.userId,
+          action: entry.action,
+          resource: entry.resource,
+          resourceId: entry.resourceId,
+          details: entry.details ? JSON.stringify(entry.details) : null,
+          ipAddress: entry.ipAddress,
+          userAgent: entry.userAgent,
+          success: entry.success,
+          errorMessage: entry.errorMessage
+        }
+      })
+
     } catch (error) {
       console.error('Error logging audit entry:', error)
       // No lanzar error para no afectar la operación principal

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getUserSlug } from '@/lib/get-user-slug'
 
 // GET - Obtener zonas de entrega del usuario
 export async function GET(request: NextRequest) {
@@ -76,11 +77,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (!storeSettings) {
+      // Obtener slug correcto desde invitación o generar uno apropiado
+      const slug = await getUserSlug(session.user.id, session.user.email!)
+
       storeSettings = await prisma.storeSettings.create({
         data: {
           userId: session.user.id,
           storeName: 'Mi Tienda',
-          storeSlug: `tienda-${session.user.id}`,
+          storeSlug: slug,
           country: 'Mexico',
           language: 'es',
           currency: 'MXN',
@@ -95,6 +99,8 @@ export async function POST(request: NextRequest) {
           passwordProtected: false
         }
       })
+
+      console.log('✅ Auto-created StoreSettings with proper slug:', slug)
     }
 
     // Crear la zona de entrega

@@ -25,26 +25,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verificar que no esté en uso en invitaciones
+    // Verificar que no esté en uso en invitaciones activas (PENDING o USED)
+    // Las invitaciones EXPIRED o CANCELLED liberan el slug para reutilización
     const existingInvitation = await prisma.invitation.findFirst({
-      where: { slug }
+      where: {
+        slug,
+        status: { in: ['PENDING', 'USED'] }
+      }
     })
 
     if (existingInvitation) {
       return NextResponse.json(
-        { message: 'Este slug ya está reservado en una invitación' },
+        { message: 'Este slug ya está reservado en una invitación activa' },
         { status: 409 }
       )
     }
 
-    // Verificar que no esté en uso por usuarios existentes
-    const existingUser = await prisma.user.findFirst({
-      where: { company: slug }
+    // Verificar que no esté en uso en StoreSettings (lugar oficial)
+    const existingStoreSlug = await prisma.storeSettings.findFirst({
+      where: { storeSlug: slug }
     })
 
-    if (existingUser) {
+    if (existingStoreSlug) {
       return NextResponse.json(
-        { message: 'Este slug ya está en uso por otro cliente' },
+        { message: 'Este slug ya está en uso por otra tienda' },
         { status: 409 }
       )
     }

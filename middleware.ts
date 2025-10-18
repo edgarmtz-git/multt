@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getToken } from "next-auth/jwt";
-import { simpleRateLimit, applyBasicSecurityHeaders, logSecurityEvent } from '@/lib/security-simple'
+import { applyBasicSecurityHeaders, logSecurityEvent } from '@/lib/security-simple'
+import { redisRateLimit, RATE_LIMITS } from '@/lib/redis-rate-limit'
 import { rootDomain } from '@/lib/utils';
 
 function extractSubdomain(request: NextRequest): string | null {
@@ -50,13 +51,22 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   applyBasicSecurityHeaders(response);
 
-  // Rate limiting básico para APIs
+  // ✅ Rate limiting con Redis (escalable para producción)
   if (pathname.startsWith('/api/')) {
     const ip = request.ip || 'unknown'
-    const maxRequests = pathname.includes('/auth/') ? 5 : 100
-    
-    if (!simpleRateLimit(ip, maxRequests)) {
-      logSecurityEvent('RATE_LIMIT_EXCEEDED', { path: pathname, ip })
+
+    // Determinar límites según tipo de endpoint
+    let rateLimit = RATE_LIMITS.API_READ
+    if (pathname.includes('/auth/')) {
+      rateLimit = RATE_LIMITS.AUTH
+    } else if (request.method !== 'GET' && request.method !== 'HEAD') {
+      rateLimit = RATE_LIMITS.API_WRITE
+    }
+
+    const isAllowed = await redisRateLimit(ip, rateLimit.max, rateLimit.window)
+
+    if (!isAllowed) {
+      logSecurityEvent('RATE_LIMIT_EXCEEDED', { path: pathname, ip, limit: rateLimit.max })
       return new NextResponse(
         JSON.stringify({ error: 'Rate limit exceeded' }),
         { status: 429, headers: { 'Content-Type': 'application/json' } }

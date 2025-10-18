@@ -149,6 +149,14 @@ export default function SingleCardCheckout({
   const [cashAmount, setCashAmount] = useState('')
   const [change, setChange] = useState(0)
 
+  // ✅ IMPORTANTE: Si deliveryEnabled = false, forzar pickup
+  useEffect(() => {
+    if (storeInfo && !storeInfo.deliveryEnabled && deliveryMethod === 'delivery') {
+      setDeliveryMethod('pickup')
+      toast.info('Esta tienda solo ofrece recoger en local')
+    }
+  }, [storeInfo, deliveryMethod])
+
   // Observaciones
   const [observations, setObservations] = useState('')
 
@@ -467,21 +475,24 @@ export default function SingleCardCheckout({
                       </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="delivery">
-                    <div className="flex items-center gap-3">
-                      <Home className="h-4 w-4 text-green-500" />
-                      <div>
-                        <p className="font-medium">Entrega a domicilio</p>
-                        <p className="text-sm text-gray-600">
-                          {deliveryCalculation && calculatedDeliveryFee > 0 ? (
-                            `+$${calculatedDeliveryFee.toFixed(2)} de envío`
-                          ) : (
-                            'Costo calculado al seleccionar dirección'
-                          )}
-                        </p>
+                  {/* Solo mostrar opción de delivery si está habilitado en la tienda */}
+                  {storeInfo?.deliveryEnabled && (
+                    <SelectItem value="delivery">
+                      <div className="flex items-center gap-3">
+                        <Home className="h-4 w-4 text-green-500" />
+                        <div>
+                          <p className="font-medium">Entrega a domicilio</p>
+                          <p className="text-sm text-gray-600">
+                            {deliveryCalculation && calculatedDeliveryFee > 0 ? (
+                              `+$${calculatedDeliveryFee.toFixed(2)} de envío`
+                            ) : (
+                              'Costo calculado al seleccionar dirección'
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </SelectItem>
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
