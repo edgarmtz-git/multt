@@ -82,7 +82,7 @@ export async function GET(
         serviceRenewal: invitation.serviceRenewal,
         isActive: invitation.isActive
       } : null,
-      products: client.products.map(product => ({
+      products: client.products.map((product: any) => ({
         id: product.id,
         name: product.name,
         description: product.description,
@@ -91,7 +91,7 @@ export async function GET(
         stock: product.stock,
         createdAt: product.createdAt
       })),
-      orders: client.orders.map(order => ({
+      orders: client.orders.map((order: any) => ({
         id: order.id,
         status: order.status,
         total: order.total,
