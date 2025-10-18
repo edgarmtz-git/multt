@@ -200,7 +200,7 @@ export function ProductForm({
     },
     tags: initialData?.tags || [],
     // Mapear categoryProducts a categoryId
-    categoryId: initialData?.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
+    categoryId: (initialData as any)?.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
     // Opciones globales
     globalOptions: (() => {
       if (initialData?.globalOptions && Array.isArray(data?.globalOptions)) {
