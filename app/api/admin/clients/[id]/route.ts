@@ -99,7 +99,7 @@ export async function GET(
         customerName: order.customerName,
         notes: order.notes,
         createdAt: order.createdAt,
-        items: order.items.map(item => ({
+        items: order.items.map((item: any) => ({
           id: item.id,
           quantity: item.quantity,
           price: item.price,
