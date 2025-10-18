@@ -84,10 +84,10 @@ export async function GET(
 
     // Transformar los datos para que coincidan con la estructura esperada
     const categoriesWithProducts = categories
-      .filter(category => category.categoryProducts.length > 0)
-      .map(category => ({
+      .filter((category: any) => category.categoryProducts.length > 0)
+      .map((category: any) => ({
         ...category,
-        products: category.categoryProducts.map(cp => ({
+        products: category.categoryProducts.map((cp: any) => ({
           ...cp.product,
           imageUrl: cp.product.images?.[0]?.url || cp.product.imageUrl,
           category: {
@@ -97,14 +97,14 @@ export async function GET(
           // Incluir opciones globales como opciones normales para el frontend
           // Filtrar opciones globales que estén disponibles
           globalOptions: cp.product.productGlobalOptions
-            ?.filter(pgo => {
+            ?.filter((pgo: any) => {
               // Si la opción global no está disponible, no incluirla
               if (pgo.globalOption.availability && !pgo.globalOption.availability.isAvailable) {
                 return false
               }
               return true
             })
-            ?.map(pgo => ({
+            ?.map((pgo: any) => ({
               id: pgo.globalOption.id,
               name: pgo.globalOption.name,
               type: pgo.globalOption.type,
@@ -112,11 +112,11 @@ export async function GET(
               maxSelections: pgo.maxSelections,
               minSelections: pgo.minSelections,
               // Filtrar solo las elecciones disponibles
-              choices: pgo.globalOption.choices.filter(choice => 
+              choices: pgo.globalOption.choices.filter((choice: any) => 
                 !choice.availability || choice.availability.isAvailable
               )
             }))
-            ?.filter(option => option.choices.length > 0) || [] // Solo incluir opciones que tengan al menos una elección disponible
+            ?.filter((option: any) => option.choices.length > 0) || [] // Solo incluir opciones que tengan al menos una elección disponible
         }))
       }))
 

@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear producto usando transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear el producto
       const product = await tx.product.create({
         data: {

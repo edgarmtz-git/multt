@@ -158,7 +158,7 @@ export async function PUT(
     }
 
     // Actualizar el producto usando transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Actualizar el producto
       const updatedProduct = await tx.product.update({
         where: { 

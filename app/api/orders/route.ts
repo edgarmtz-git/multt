@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear pedido usando transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear el pedido con TODOS los campos
       const order = await tx.order.create({
         data: {

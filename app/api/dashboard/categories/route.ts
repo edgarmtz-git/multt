@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     const nextOrder = lastCategory ? lastCategory.order + 1 : 0
 
     // Crear categoría usando transacción para manejar productos
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear la categoría
       const category = await tx.category.create({
         data: {

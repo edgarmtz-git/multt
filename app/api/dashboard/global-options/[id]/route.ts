@@ -97,7 +97,7 @@ export async function PUT(
     }
 
     // Actualizar usando transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Actualizar la opción global
       const updatedOption = await tx.globalOption.update({
         where: { id },

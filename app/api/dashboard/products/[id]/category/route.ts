@@ -47,7 +47,7 @@ export async function PATCH(
     }
 
     // Actualizar las categorías del producto usando transacción
-    const updatedProduct = await prisma.$transaction(async (tx) => {
+    const updatedProduct = await prisma.$transaction(async (tx: any) => {
       // Eliminar todas las relaciones existentes
       await tx.categoryProduct.deleteMany({
         where: { productId: id }

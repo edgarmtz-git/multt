@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
-    const deliveryZones = store.storeSettings.deliveryZones.map(zone => ({
+    const deliveryZones = store.storeSettings.deliveryZones.map((zone: any) => ({
       id: zone.id,
       name: zone.name,
       type: zone.type,

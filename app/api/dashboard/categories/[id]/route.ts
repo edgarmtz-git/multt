@@ -134,7 +134,7 @@ export async function PUT(
     }
 
     // Actualizar categoría usando transacción para manejar productos
-    const updatedCategory = await prisma.$transaction(async (tx) => {
+    const updatedCategory = await prisma.$transaction(async (tx: any) => {
       // Actualizar datos básicos de la categoría
       const category = await tx.category.update({
         where: { 

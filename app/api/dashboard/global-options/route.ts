@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear opción global usando transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear la opción global
       const globalOption = await tx.globalOption.create({
         data: {
