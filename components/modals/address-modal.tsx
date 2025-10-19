@@ -302,16 +302,20 @@ export function AddressModal({ isOpen, onClose, onSave, initialAddress }: Addres
       <SimpleAddressModal
         isOpen={showAddressModal}
         onClose={() => setShowAddressModal(false)}
-        onNext={handleAddressNext}
-        initialAddress={address.address}
+        onSave={(newAddress) => {
+          setAddress(newAddress)
+          setShowAddressModal(false)
+          setShowMapsModal(true)
+        }}
+        initialAddress={address}
       />
 
       <GoogleMapsUrlModal
         isOpen={showMapsModal}
         onClose={() => setShowMapsModal(false)}
         onConfirm={handleMapsConfirm}
-        address={address.address}
-        initialUrl={address.googleMapsUrl}
+        address={typeof address === 'string' ? address : address.address}
+        initialUrl={typeof address === 'string' ? undefined : address.googleMapsUrl}
       />
     </>
   )

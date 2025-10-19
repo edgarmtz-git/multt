@@ -7,7 +7,7 @@ export class VercelBlobProvider implements StorageProvider {
   async upload(file: File, customPath?: string): Promise<UploadResult> {
     try {
       // Lazy import para no romper si @vercel/blob no está instalado
-      const { put } = await import('@vercel/blob')
+      const { put } = await import('@vercel/blob' as any)
 
       // Generar nombre único
       const timestamp = Date.now()
@@ -35,7 +35,7 @@ export class VercelBlobProvider implements StorageProvider {
 
   async delete(key: string): Promise<void> {
     try {
-      const { del } = await import('@vercel/blob')
+      const { del } = await import('@vercel/blob' as any)
       await del(key)
     } catch (error) {
       console.error('Error deleting from Vercel Blob:', error)

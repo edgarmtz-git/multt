@@ -152,8 +152,8 @@ export function sanitizeText(text: string): string {
 
 // Función para validar y sanitizar datos
 export function validateAndSanitize<T>(
-  data: unknown, 
-  schema: z.ZodSchema<T>
+  data: unknown,
+  schema: any
 ): { success: true; data: T } | { success: false; errors: string[] } {
   try {
     // Validar con Zod
@@ -163,11 +163,12 @@ export function validateAndSanitize<T>(
     const sanitizedData = sanitizeObject(validatedData)
     
     return { success: true, data: sanitizedData }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { 
-        success: false, 
-        errors: error.errors.map((err: any) => err.message) 
+  } catch (error: unknown) {
+    if (z && error instanceof z.ZodError) {
+      const zodError = error as any
+      return {
+        success: false,
+        errors: zodError.errors.map((err: any) => err.message)
       }
     }
     return { 

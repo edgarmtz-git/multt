@@ -34,7 +34,7 @@ export async function getUserSlug(userId: string, userEmail: string): Promise<st
       status: 'USED'
     },
     select: { slug: true },
-    orderBy: { updatedAt: 'desc' } // Más reciente
+    orderBy: { createdAt: 'desc' } // Más reciente
   })
 
   if (invitation?.slug) {

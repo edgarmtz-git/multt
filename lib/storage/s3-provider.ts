@@ -23,7 +23,7 @@ export class S3StorageProvider implements StorageProvider {
   async upload(file: File, customPath?: string): Promise<UploadResult> {
     try {
       // Lazy import
-      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3')
+      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3' as any)
 
       // Configurar cliente S3
       const s3Client = new S3Client({
@@ -77,7 +77,7 @@ export class S3StorageProvider implements StorageProvider {
 
   async delete(key: string): Promise<void> {
     try {
-      const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3')
+      const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3' as any)
 
       const s3Client = new S3Client({
         region: this.region,

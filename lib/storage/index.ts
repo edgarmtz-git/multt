@@ -10,13 +10,23 @@ async function getLocalProvider() {
 }
 
 async function getVercelBlobProvider() {
-  const { VercelBlobProvider } = await import('./vercel-blob-provider')
-  return new VercelBlobProvider()
+  try {
+    const { VercelBlobProvider } = await import('./vercel-blob-provider')
+    return new VercelBlobProvider()
+  } catch (error) {
+    console.warn('Vercel Blob provider not available, falling back to local storage')
+    return await getLocalProvider()
+  }
 }
 
 async function getS3Provider() {
-  const { S3StorageProvider } = await import('./s3-provider')
-  return new S3StorageProvider()
+  try {
+    const { S3StorageProvider } = await import('./s3-provider')
+    return new S3StorageProvider()
+  } catch (error) {
+    console.warn('S3 provider not available, falling back to local storage')
+    return await getLocalProvider()
+  }
 }
 
 // Singleton para evitar crear múltiples instancias
