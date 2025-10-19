@@ -257,9 +257,9 @@ export function ProductForm({
           globalOption: globalOption
         }
       })
-    } 
+    }
     // Solo usar initialData como fallback cuando formData.globalOptions no esté definido
-    else if (initialData?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
+    else if ((initialData as any)?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
       console.log('🔍 Computing assigned global options from initialData:', data?.productGlobalOptions)
       return data?.productGlobalOptions.map((pgo: any) => ({
         globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
