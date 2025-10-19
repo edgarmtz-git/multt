@@ -270,7 +270,7 @@ export function ProductForm({
       }))
     }
     return []
-  }, [formData.globalOptions, initialData?.productGlobalOptions, availableGlobalOptions])
+  }, [formData.globalOptions, (initialData as any)?.productGlobalOptions, availableGlobalOptions])
   const [showReorderModal, setShowReorderModal] = useState(false)
   const [showAdvancedPricing, setShowAdvancedPricing] = useState(false)
   const [globalOptionsExpanded, setGlobalOptionsExpanded] = useState(false)
@@ -1020,7 +1020,7 @@ export function ProductForm({
                       <input
                         type="checkbox"
                         id="bulkDiscountEnabled"
-                        checked={formData.pricing.bulkDiscount.enabled}
+                        checked={formData.pricing.bulkDiscount?.enabled || false}
                         onChange={(e) => handleNestedChange('pricing', 'bulkDiscount', {
                           ...formData.pricing.bulkDiscount,
                           enabled: e.target.checked
@@ -1032,7 +1032,7 @@ export function ProductForm({
                       </Label>
                     </div>
 
-                    {formData.pricing.bulkDiscount.enabled && (
+                    {formData.pricing.bulkDiscount?.enabled && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
                         <div className="space-y-2">
                           <Label htmlFor="bulkMinQuantity">Cantidad mínima</Label>
@@ -1040,7 +1040,7 @@ export function ProductForm({
                             id="bulkMinQuantity"
                             type="number"
                             placeholder="10"
-                            value={formData.pricing.bulkDiscount.minQuantity || ''}
+                            value={formData.pricing.bulkDiscount?.minQuantity || ''}
                             onChange={(e) => handleNestedChange('pricing', 'bulkDiscount', {
                               ...formData.pricing.bulkDiscount,
                               minQuantity: Number(e.target.value)
@@ -1054,7 +1054,7 @@ export function ProductForm({
                               id="bulkDiscountPercentage"
                               type="number"
                               placeholder="10"
-                              value={formData.pricing.bulkDiscount.discountPercentage || ''}
+                              value={formData.pricing.bulkDiscount?.discountPercentage || ''}
                               onChange={(e) => handleNestedChange('pricing', 'bulkDiscount', {
                                 ...formData.pricing.bulkDiscount,
                                 discountPercentage: Number(e.target.value)
@@ -1658,7 +1658,7 @@ export function ProductForm({
                   </div>
                   
                   <div className="space-y-3">
-                    {assignedGlobalOptions.map((assignedOption, index) => {
+                    {assignedGlobalOptions.map((assignedOption: any, index: any) => {
                       const option = assignedOption.globalOption
                       if (!option) {
                         return (
@@ -1757,7 +1757,7 @@ export function ProductForm({
                               <div>
                                 <Label className="text-sm font-medium text-gray-700">Elecciones disponibles:</Label>
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                  {option.choices.slice(0, 6).map((choice, choiceIndex) => (
+                                  {option.choices.slice(0, 6).map((choice: any, choiceIndex: any) => (
                                     <Badge key={choiceIndex} variant="outline" className="text-xs">
                                       {choice.name} {choice.price > 0 && `(+$${choice.price})`}
                                     </Badge>
