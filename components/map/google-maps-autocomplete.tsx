@@ -83,7 +83,9 @@ export default function GoogleMapsAutocomplete({
         geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
           if (status === 'OK' && results[0]) {
             const address = results[0].formatted_address
-            inputRef.current.value = address
+            if (inputRef.current) {
+              inputRef.current.value = address
+            }
             onLocationSelect(address, { lat, lng })
           }
         })
