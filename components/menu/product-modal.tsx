@@ -150,8 +150,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
     }
     
     // Verificar límites mínimos de opciones globales
-    if (product.globalOptions) {
-      for (const option of product.globalOptions) {
+    if ((product as any).globalOptions) {
+      for (const option of (product as any).globalOptions) {
         const selectedCount = selectedOptions[option.id]?.length || 0
         if (option.isRequired && selectedCount < (option.minSelections || 1)) {
           return true
@@ -293,7 +293,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                         const textChoice = {
                           id: 'text-response',
                           name: e.target.value,
-                          price: 0
+                          price: 0,
+                          isDefault: false
                         }
                         if (e.target.value.trim()) {
                           setSelectedOptions(prev => ({ ...prev, [option.id]: [textChoice] }))
@@ -319,7 +320,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                         const numberChoice = {
                           id: 'number-response',
                           name: e.target.value,
-                          price: 0
+                          price: 0,
+                          isDefault: false
                         }
                         if (e.target.value.trim()) {
                           setSelectedOptions(prev => ({ ...prev, [option.id]: [numberChoice] }))
@@ -344,7 +346,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                         const dateChoice = {
                           id: 'date-response',
                           name: e.target.value,
-                          price: 0
+                          price: 0,
+                          isDefault: false
                         }
                         if (e.target.value) {
                           setSelectedOptions(prev => ({ ...prev, [option.id]: [dateChoice] }))
@@ -378,7 +381,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                             const mediaChoice = {
                               id: 'media-response',
                               name: file.name,
-                              price: 0
+                              price: 0,
+                              isDefault: false
                             }
                             setSelectedOptions(prev => ({ ...prev, [option.id]: [mediaChoice] }))
                           }
@@ -434,8 +438,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                           <Checkbox
                             id={choice.id}
                             checked={selectedOptions[option.id]?.some(c => c.id === choice.id) || false}
-                            onCheckedChange={(checked) => 
-                              handleOptionChange(option.id, choice, checked as boolean, option.maxSelections)
+                            onCheckedChange={(checked) =>
+                              handleOptionChange(option.id, choice, checked as boolean, (option as any).maxSelections)
                             }
                             className="w-5 h-5"
                           />
@@ -462,7 +466,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
             ))}
 
             {/* Opciones globales */}
-            {product.globalOptions && product.globalOptions.map((option) => (
+            {(product as any).globalOptions && (product as any).globalOptions.map((option: any) => (
               <div key={option.id} className="mb-6">
                 <div className="mb-3">
                   <div className="flex items-center justify-between">
@@ -497,7 +501,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                     <RadioGroup
                       value={selectedOptions[option.id]?.[0]?.id || ''}
                       onValueChange={(value) => {
-                        const choice = option.choices.find(c => c.id === value)
+                        const choice = option.choices.find((c: any) => c.id === value)
                         if (choice) {
                           setSelectedOptions(prev => ({
                             ...prev,
@@ -506,7 +510,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                         }
                       }}
                     >
-                      {option.choices.map((choice) => (
+                      {option.choices.map((choice: any) => (
                         <div key={choice.id} className="flex items-center space-x-3 p-4 sm:p-5 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors min-h-[60px]">
                           <RadioGroupItem value={choice.id} id={choice.id} className="w-5 h-5" />
                           <Label htmlFor={choice.id} className="flex-1 cursor-pointer py-2">
@@ -530,8 +534,8 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                 ) : (
                   // Opción de casillas múltiples (Checkbox)
                   <div className="space-y-3">
-                    {option.choices.map((choice) => {
-                    const isSelected = selectedOptions[option.id]?.some(c => c.id === choice.id) || false
+                    {option.choices.map((choice: any) => {
+                    const isSelected = selectedOptions[option.id]?.some((c: any) => c.id === choice.id) || false
                     const currentCount = selectedOptions[option.id]?.length || 0
                     const isDisabled = !isSelected && option.maxSelections && currentCount >= option.maxSelections
                     
