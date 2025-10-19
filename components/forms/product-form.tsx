@@ -367,6 +367,7 @@ export function ProductForm({
         },
         tags: data?.tags || [],
         categoryId: data?.categoryProducts?.[0]?.category?.id || (isEditing ? 'no-category' : ''),
+        globalOptions: [],
         // Campos adicionales de precios
         pricing: {
           costPrice: data?.pricing?.costPrice || 0,
