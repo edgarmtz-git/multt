@@ -62,7 +62,7 @@ export async function POST(
       const storeSlug = updatedUser.storeSettings?.storeSlug || updatedUser.company || ''
 
       await sendClientReactivatedEmail({
-        clientName: updatedUser.name,
+        clientName: updatedUser.name || updatedUser.email,
         clientEmail: updatedUser.email,
         storeName,
         storeSlug,

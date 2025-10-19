@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { HelpCircle, ExternalLink, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
-import UrlCoordinateExtractor from '@/components/map/url-coordinate-extractor'
+// import UrlCoordinateExtractor from '@/components/map/url-coordinate-extractor'
 
 interface GoogleMapsUrlModalProps {
   isOpen: boolean
@@ -72,10 +72,10 @@ export default function GoogleMapsUrlModal({
 
           <div className="space-y-4">
             {/* Extractor de coordenadas */}
-            <UrlCoordinateExtractor
+            {/* <UrlCoordinateExtractor
               onCoordinatesExtracted={handleCoordinatesExtracted}
               initialUrl={url}
-            />
+            /> */}
 
             {/* Botón para abrir Google Maps */}
             <Button

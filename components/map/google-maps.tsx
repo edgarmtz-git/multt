@@ -86,7 +86,7 @@ export function GoogleMaps({ center, onLocationChange, address, apiKey, height =
 
     return () => {
       // No limpiar el script globalmente, solo limpiar la función callback
-      delete window.initMap
+      window.initMap = undefined
     }
   }, [apiKey])
 

@@ -61,7 +61,7 @@ export async function POST(
 
       // Email al cliente
       await sendClientSuspendedEmail({
-        clientName: updatedUser.name,
+        clientName: updatedUser.name || updatedUser.email,
         clientEmail: updatedUser.email,
         storeName,
         suspensionReason,
@@ -70,7 +70,7 @@ export async function POST(
 
       // Email al admin
       await sendClientSuspendedAdminEmail({
-        clientName: updatedUser.name,
+        clientName: updatedUser.name || updatedUser.email,
         clientEmail: updatedUser.email,
         storeName,
         storeSlug,

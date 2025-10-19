@@ -129,7 +129,7 @@ export default function LeafletInteractiveMap({
         const L = await loadLeaflet() as any
         
         // Verificar si el contenedor ya tiene un mapa
-        if (mapRef.current._leaflet_id) {
+        if ((mapRef.current as any)._leaflet_id) {
           return // Ya está inicializado
         }
         
@@ -193,8 +193,8 @@ export default function LeafletInteractiveMap({
       if (map && mapRef.current) {
         map.remove()
         // Limpiar la referencia del contenedor
-        if (mapRef.current._leaflet_id) {
-          delete mapRef.current._leaflet_id
+        if ((mapRef.current as any)._leaflet_id) {
+          delete (mapRef.current as any)._leaflet_id
         }
       }
     }
