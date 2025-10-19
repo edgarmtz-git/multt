@@ -4,6 +4,13 @@ import { applyBasicSecurityHeaders, logSecurityEvent } from '@/lib/security-simp
 import { redisRateLimit, RATE_LIMITS } from '@/lib/redis-rate-limit'
 import { rootDomain } from '@/lib/utils';
 
+// Helper para obtener IP del request
+function getClientIp(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0] ||
+         request.headers.get('x-real-ip') ||
+         'unknown'
+}
+
 function extractSubdomain(request: NextRequest): string | null {
   const url = request.url;
   const host = request.headers.get('host') || '';
@@ -53,7 +60,7 @@ export async function middleware(request: NextRequest) {
 
   // ✅ Rate limiting con Redis (escalable para producción)
   if (pathname.startsWith('/api/')) {
-    const ip = request.ip || 'unknown'
+    const ip = getClientIp(request)
 
     // Determinar límites según tipo de endpoint
     let rateLimit = RATE_LIMITS.API_READ
@@ -94,31 +101,31 @@ export async function middleware(request: NextRequest) {
 
     if (!token) {
       // Log intento de acceso no autorizado
-      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'No token', ip: request.ip })
+      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'No token', ip: getClientIp(request) })
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // Validación básica del token
     if (!token.role || !['ADMIN', 'CLIENT'].includes(token.role)) {
-      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Invalid role', role: token.role, ip: request.ip })
+      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Invalid role', role: token.role, ip: getClientIp(request) })
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     // Verificación básica de token válido
     if (!token.id || !token.role) {
-      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Invalid token', ip: request.ip })
+      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Invalid token', ip: getClientIp(request) })
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     // Verificar permisos para rutas de admin
     if (pathname.startsWith('/admin') && token.role !== 'ADMIN') {
-      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Insufficient permissions', role: token.role, ip: request.ip })
+      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Insufficient permissions', role: token.role, ip: getClientIp(request) })
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     // Verificar permisos para rutas de dashboard
     if (pathname.startsWith('/dashboard') && token.role !== 'CLIENT') {
-      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Insufficient permissions', role: token.role, ip: request.ip })
+      logSecurityEvent('UNAUTHORIZED_ACCESS', { path: pathname, reason: 'Insufficient permissions', role: token.role, ip: getClientIp(request) })
       return NextResponse.redirect(new URL('/admin', request.url));
     }
   }

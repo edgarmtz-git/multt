@@ -74,7 +74,7 @@ export function useGoogleMaps() {
     // Cleanup
     return () => {
       if (window.initGoogleMaps) {
-        delete window.initGoogleMaps
+        window.initGoogleMaps = undefined
       }
     }
   }, [isLoading])

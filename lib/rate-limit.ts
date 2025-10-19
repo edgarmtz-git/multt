@@ -107,7 +107,7 @@ function getClientIP(request: NextRequest): string {
   if (realIP) return realIP
   if (forwarded) return forwarded.split(',')[0].trim()
   
-  return request.ip || 'unknown'
+  return 'unknown'
 }
 
 // Función para limpiar rate limiting (llamar periódicamente)
