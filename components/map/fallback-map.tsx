@@ -68,7 +68,7 @@ export default function FallbackMap({ center, onLocationChange, height = '400px'
       }).addTo(map)
 
       // Evento cuando se arrastra el marcador
-      marker.on('dragend', (e) => {
+      marker.on('dragend', (e: any) => {
         const position = e.target.getLatLng()
         onLocationChange(position.lat, position.lng)
       })
