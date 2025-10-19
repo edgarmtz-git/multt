@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
     const ip = getClientIp(request)
 
     // Determinar límites según tipo de endpoint
-    let rateLimit = RATE_LIMITS.API_READ
+    let rateLimit: { max: number; window: number } = RATE_LIMITS.API_READ
     if (pathname.includes('/auth/')) {
       rateLimit = RATE_LIMITS.AUTH
     } else if (request.method !== 'GET' && request.method !== 'HEAD') {

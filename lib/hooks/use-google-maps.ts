@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 declare global {
   interface Window {
     google: any
-    initGoogleMaps: () => void
+    initGoogleMaps?: () => void
   }
 }
 
