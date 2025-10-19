@@ -211,7 +211,7 @@ export function ProductForm({
           minSelections: go.minSelections,
           isRequired: go.isRequired || false
         }))
-      } else if (initialData?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
+      } else if ((initialData as any)?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
         console.log('🔍 Using productGlobalOptions:', data?.productGlobalOptions)
         return data?.productGlobalOptions.map((pgo: any) => ({
           globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
