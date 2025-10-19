@@ -74,7 +74,7 @@ export default function FallbackMap({ center, onLocationChange, height = '400px'
       })
 
       // Evento cuando se hace clic en el mapa
-      map.on('click', (e) => {
+      map.on('click', (e: any) => {
         const { lat, lng } = e.latlng
         marker.setLatLng([lat, lng])
         onLocationChange(lat, lng)
