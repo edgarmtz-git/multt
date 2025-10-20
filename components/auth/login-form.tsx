@@ -160,17 +160,7 @@ export function LoginForm({ error: urlError }: LoginFormProps) {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
-          
-          {/* Credenciales de prueba */}
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p className="font-medium">Credenciales de prueba (Base de Datos):</p>
-            <div className="bg-muted p-2 rounded space-y-1">
-              <p><strong>Admin:</strong> admin@sistema.com / admin123</p>
-              <p><strong>Cliente:</strong> cliente@empresa.com / cliente123</p>
-              <p className="text-green-600 font-medium">✅ Autenticación real con NextAuth + Base de Datos</p>
-            </div>
-          </div>
-          
+
           <p className="text-sm text-muted-foreground text-center">
             ¿No tienes cuenta?{" "}
             <a href="/register" className="text-primary hover:underline">
