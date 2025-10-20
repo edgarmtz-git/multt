@@ -25,7 +25,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Imagen requerida' }, { status: 400 })
     }
 
-    // Crear directorio si no existe
+    // Check if running on Vercel (serverless)
+    if (process.env.VERCEL) {
+      return NextResponse.json({
+        message: 'El upload de imágenes requiere configurar Vercel Blob Storage. Por ahora, puedes usar URLs de imágenes externas (Imgur, Cloudinary, etc).',
+        error: 'STORAGE_NOT_CONFIGURED'
+      }, { status: 501 })
+    }
+
+    // Crear directorio si no existe (solo funciona en local)
     const uploadsDir = join(process.cwd(), 'public', 'uploads', 'store-images')
     await mkdir(uploadsDir, { recursive: true })
 

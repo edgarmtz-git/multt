@@ -56,8 +56,32 @@ const days = [
   { key: 'sunday', name: 'Domingo' }
 ]
 
+const DEFAULT_SCHEDULE: UnifiedSchedule = {
+  operatingHours: {
+    monday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    tuesday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    wednesday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    thursday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    friday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    saturday: { isOpen: true, periods: [{ open: '09:00', close: '18:00' }] },
+    sunday: { isOpen: false, periods: [] }
+  },
+  deliveryOptions: {
+    enabled: true,
+    immediate: true,
+    scheduled: false,
+    pickup: false,
+    minAdvanceHours: 1,
+    maxAdvanceDays: 7,
+    useOperatingHours: true
+  },
+  exceptions: []
+}
+
 export function ScheduleEditor({ initialSchedule, onSave }: ScheduleEditorProps) {
-  const [schedule, setSchedule] = useState<UnifiedSchedule>(initialSchedule)
+  const [schedule, setSchedule] = useState<UnifiedSchedule>(
+    initialSchedule && initialSchedule.operatingHours ? initialSchedule : DEFAULT_SCHEDULE
+  )
   const [saving, setSaving] = useState(false)
 
   const updateDaySchedule = (day: string, updates: Partial<DaySchedule>) => {
