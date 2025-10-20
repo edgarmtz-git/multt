@@ -174,14 +174,34 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
             <Switch
               id="deliveryEnabled"
               checked={settings.deliveryEnabled || false}
-              onCheckedChange={(checked) => {
-                setSettings((prev: any) => ({
-                  ...prev,
+              onCheckedChange={async (checked) => {
+                // Actualizar estado local primero
+                const newSettings = {
+                  ...settings,
                   deliveryEnabled: checked
-                }))
-                // Guardar automáticamente
-                if (onSave) {
-                  onSave()
+                }
+                setSettings(newSettings)
+
+                // Guardar en BD directamente con el nuevo valor
+                try {
+                  const response = await fetch('/api/dashboard/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(newSettings)
+                  })
+
+                  if (response.ok) {
+                    console.log('✅ deliveryEnabled guardado:', checked)
+                  } else {
+                    console.error('❌ Error al guardar deliveryEnabled')
+                    // Revertir el cambio si falla
+                    setSettings(settings)
+                  }
+                } catch (error) {
+                  console.error('❌ Error saving deliveryEnabled:', error)
+                  // Revertir el cambio si falla
+                  setSettings(settings)
                 }
               }}
             />
