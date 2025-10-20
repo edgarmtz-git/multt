@@ -152,15 +152,47 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Método de cálculo de envío
+            Configuración de Entregas
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Elige cómo quieres calcular el costo de envío para tus clientes
+            Activa o desactiva las entregas a domicilio y configura los costos
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="deliveryCalculationMethod">Método de cálculo</Label>
+          {/* Switch para activar/desactivar delivery */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div className="space-y-0.5">
+              <Label htmlFor="deliveryEnabled" className="text-base font-medium">
+                Entregas a domicilio
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {settings.deliveryEnabled
+                  ? 'Los clientes podrán elegir entre entrega a domicilio o recoger en tienda'
+                  : 'Solo se mostrará la opción de recoger en tienda'}
+              </p>
+            </div>
+            <Switch
+              id="deliveryEnabled"
+              checked={settings.deliveryEnabled || false}
+              onCheckedChange={(checked) => {
+                setSettings((prev: any) => ({
+                  ...prev,
+                  deliveryEnabled: checked
+                }))
+                // Guardar automáticamente
+                if (onSave) {
+                  onSave()
+                }
+              }}
+            />
+          </div>
+
+          {/* Solo mostrar opciones de delivery si está habilitado */}
+          {settings.deliveryEnabled && (
+            <>
+              <Separator />
+              <div>
+                <Label htmlFor="deliveryCalculationMethod">Método de cálculo de envío</Label>
             <Select 
               value={settings.deliveryCalculationMethod || 'distance'} 
               onValueChange={(value) => setSettings((prev: any) => ({ 
@@ -295,11 +327,13 @@ export default function DeliverySettings({ settings, setSettings, onSave }: Deli
               </div>
             </div>
           )}
+            </>
+          )}
         </CardContent>
       </Card>
 
-      {/* Zonas de entrega configuradas - Solo visible si el método es 'zones' */}
-      {settings.deliveryCalculationMethod === 'zones' && (
+      {/* Zonas de entrega configuradas - Solo visible si delivery está habilitado Y el método es 'zones' */}
+      {settings.deliveryEnabled && settings.deliveryCalculationMethod === 'zones' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

@@ -14,6 +14,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function OrdersPage() {
   const session = await getServerSession(authOptions)
@@ -26,7 +27,12 @@ export default async function OrdersPage() {
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
-      company: true
+      company: true,
+      storeSettings: {
+        select: {
+          storeSlug: true
+        }
+      }
     }
   })
 
@@ -93,10 +99,14 @@ export default async function OrdersPage() {
                 Administra los pedidos de tus clientes
               </p>
             </div>
-          <Button>
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Nuevo Pedido
-          </Button>
+          {user?.storeSettings?.storeSlug && (
+            <Link href={`/tienda/${user.storeSettings.storeSlug}`} target="_blank">
+              <Button>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Nuevo Pedido
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Stats */}
@@ -183,9 +193,11 @@ export default async function OrdersPage() {
                       </p>
                     </div>
                     
-                    <Button variant="outline" size="sm">
-                      Ver Detalles
-                    </Button>
+                    <Link href={`/dashboard/orders/${order.id}`}>
+                      <Button variant="outline" size="sm">
+                        Ver Detalles
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
