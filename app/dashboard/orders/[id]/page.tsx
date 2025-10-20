@@ -176,7 +176,7 @@ export default async function OrderDetailPage({
                 {order.address && (
                   <div>
                     <p className="text-sm text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{order.address}</p>
+                    <p className="font-medium">{typeof order.address === 'string' ? order.address : JSON.stringify(order.address)}</p>
                   </div>
                 )}
                 <div>
