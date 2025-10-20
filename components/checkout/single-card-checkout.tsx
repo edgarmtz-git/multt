@@ -170,6 +170,10 @@ export default function SingleCardCheckout({
         const response = await fetch(`/api/store/${storeSlug}`)
         if (response.ok) {
           const data = await response.json()
+          console.log('🏪 Store Info loaded:', {
+            deliveryEnabled: data.deliveryEnabled,
+            deliveryCalculationMethod: data.deliveryCalculationMethod
+          })
           setStoreInfo(data)
 
           // Si el método es por zonas, cargar las zonas

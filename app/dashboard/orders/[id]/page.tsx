@@ -78,6 +78,31 @@ export default async function OrderDetailPage({
     }
   }
 
+  const formatAddress = (address: any): string => {
+    if (typeof address === 'string') {
+      return address
+    }
+
+    if (typeof address === 'object' && address !== null) {
+      const parts: string[] = []
+
+      if (address.street) parts.push(address.street)
+      if (address.colonia || address.neighborhood) parts.push(address.colonia || address.neighborhood)
+      if (address.city) parts.push(address.city)
+      if (address.postalCode || address.zipCode) parts.push(`CP ${address.postalCode || address.zipCode}`)
+
+      let formatted = parts.join(', ')
+
+      if (address.references || address.reference) {
+        formatted += `\n\nReferencias: ${address.references || address.reference}`
+      }
+
+      return formatted || JSON.stringify(address)
+    }
+
+    return JSON.stringify(address)
+  }
+
   // Obtener usuario para header
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -176,7 +201,7 @@ export default async function OrderDetailPage({
                 {order.address && (
                   <div>
                     <p className="text-sm text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{typeof order.address === 'string' ? order.address : JSON.stringify(order.address)}</p>
+                    <p className="font-medium whitespace-pre-line">{formatAddress(order.address)}</p>
                   </div>
                 )}
                 <div>
