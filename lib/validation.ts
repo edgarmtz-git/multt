@@ -57,10 +57,10 @@ export const orderSchema = z.object({
     .email('Email inválido')
     .optional(),
   deliveryMethod: z.enum(['delivery', 'pickup'], {
-    errorMap: () => ({ message: 'Método de entrega inválido' })
+    message: 'Método de entrega inválido'
   }),
   paymentMethod: z.enum(['cash', 'transfer'], {
-    errorMap: () => ({ message: 'Método de pago inválido' })
+    message: 'Método de pago inválido'
   }),
   address: z.object({
     street: z.string().min(1, 'La calle es requerida').max(200, 'Calle muy larga').trim(),
