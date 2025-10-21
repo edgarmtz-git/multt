@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Globe } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
+import { Globe, Clock } from 'lucide-react'
 
 interface RegionalSettingsProps {
   settings: any
@@ -77,6 +79,51 @@ export default function RegionalSettings({ settings, setSettings }: RegionalSett
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Horarios de servicio */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <Label htmlFor="enableBusinessHours" className="text-base font-medium">
+                  Horarios de servicio
+                </Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {settings.enableBusinessHours
+                  ? 'Los horarios configurados en "Disponibilidad" controlan si tu tienda aparece como abierta o cerrada'
+                  : 'Tu tienda aparecerá siempre como abierta, independientemente de los horarios configurados'}
+              </p>
+            </div>
+            <Switch
+              id="enableBusinessHours"
+              checked={settings.enableBusinessHours || false}
+              onCheckedChange={(checked) => setSettings((prev: any) => ({ ...prev, enableBusinessHours: checked }))}
+            />
+          </div>
+
+          {settings.enableBusinessHours && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium text-blue-900">
+                    Horarios activos
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Los clientes verán si tu tienda está "Abierto" o "Cerrado" según los horarios que configures en la sección <strong>Disponibilidad</strong>. Cuando esté cerrado, no podrán agregar productos al carrito.
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    💡 Tip: Ve a Disponibilidad para configurar tus días y horarios de atención
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

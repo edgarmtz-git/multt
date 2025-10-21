@@ -165,6 +165,11 @@ export default function CustomerMenuPage() {
 
   // Función para verificar si el restaurante está abierto
   const checkIfOpen = (storeInfo: StoreInfo) => {
+    // Si los horarios de servicio están desactivados, siempre mostrar como abierto
+    if (!storeInfo.enableBusinessHours) {
+      return true
+    }
+
     if (!storeInfo.unifiedSchedule) {
       return true // Si no hay horarios configurados, asumir que está abierto
     }
@@ -288,7 +293,13 @@ export default function CustomerMenuPage() {
   }
 
   const addToCart = (product: Product, quantity: number = 1, selectedVariants: ProductVariant[] = [], selectedOptions: { [optionId: string]: ProductOptionChoice[] } = {}) => {
-    const existingItem = cart.find(item => 
+    // Verificar si la tienda está cerrada
+    if (!isOpen) {
+      toast.error('La tienda está cerrada en este momento')
+      return
+    }
+
+    const existingItem = cart.find(item =>
       item.product.id === product.id &&
       JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants) &&
       JSON.stringify(item.selectedOptions) === JSON.stringify(selectedOptions)
@@ -714,7 +725,8 @@ export default function CustomerMenuPage() {
                           
                           {/* Botón agregar en esquina inferior derecha */}
                           <Button
-                            className="bg-black hover:bg-gray-800 text-white rounded-full px-4 py-2 text-sm font-medium min-h-[36px] min-w-[80px]"
+                            className="bg-black hover:bg-gray-800 text-white rounded-full px-4 py-2 text-sm font-medium min-h-[36px] min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!isOpen}
                             onClick={(e) => {
                               e.stopPropagation()
                               if ((product.variants && product.variants.length > 0) || (product.options && product.options.length > 0) || (product.globalOptions && product.globalOptions.length > 0)) {
@@ -725,7 +737,7 @@ export default function CustomerMenuPage() {
                               }
                             }}
                           >
-                            Agregar
+                            {isOpen ? 'Agregar' : 'Cerrado'}
                           </Button>
                         </div>
                       </div>

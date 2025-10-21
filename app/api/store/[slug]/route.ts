@@ -46,6 +46,9 @@ export async function GET(
       minDeliveryFee: store.storeSettings.minDeliveryFee || 0,
       maxDeliveryDistance: store.storeSettings.maxDeliveryDistance || 10,
       manualDeliveryMessage: store.storeSettings.manualDeliveryMessage || 'El costo de envío se calculará al confirmar el pedido',
+      // Configuración de horarios
+      enableBusinessHours: store.storeSettings.enableBusinessHours || false,
+      unifiedSchedule: store.storeSettings.unifiedSchedule,
       // Configuración de pagos
       cashPaymentEnabled: store.storeSettings.cashPaymentEnabled || false,
       bankTransferEnabled: store.storeSettings.bankTransferEnabled || false,
