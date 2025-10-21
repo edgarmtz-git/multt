@@ -155,6 +155,7 @@ export async function GET() {
 
     // Parsear JSON fields
     console.log('🔍 GET - Settings from DB:', {
+      deliveryEnabled: settings.deliveryEnabled,
       deliveryScheduleEnabled: settings.deliveryScheduleEnabled,
       scheduleType: settings.scheduleType,
       advanceDays: settings.advanceDays,
@@ -260,6 +261,7 @@ export async function PUT(request: NextRequest) {
       enableBusinessHours,
       disableCheckoutOutsideHours,
       businessHours,
+      deliveryEnabled,
       instagramLink,
       facebookLink,
       paymentsEnabled,
@@ -292,6 +294,7 @@ export async function PUT(request: NextRequest) {
     } = body
     
     console.log('🔍 Campos extraídos:', {
+      deliveryEnabled,
       deliveryScheduleEnabled,
       scheduleType,
       advanceDays,
@@ -411,6 +414,7 @@ export async function PUT(request: NextRequest) {
         enableBusinessHours: enableBusinessHours || false,
         disableCheckoutOutsideHours: disableCheckoutOutsideHours || false,
         businessHours: businessHours ? JSON.stringify(businessHours) : undefined,
+        deliveryEnabled: deliveryEnabled !== undefined ? deliveryEnabled : true,
         instagramLink,
         facebookLink,
         paymentsEnabled: paymentsEnabled !== undefined ? paymentsEnabled : true,
@@ -460,6 +464,7 @@ export async function PUT(request: NextRequest) {
         enableBusinessHours: enableBusinessHours || false,
         disableCheckoutOutsideHours: disableCheckoutOutsideHours || false,
         businessHours: businessHours ? JSON.stringify(businessHours) : undefined,
+        deliveryEnabled: deliveryEnabled !== undefined ? deliveryEnabled : true,
         instagramLink,
         facebookLink,
         paymentsEnabled: paymentsEnabled !== undefined ? paymentsEnabled : true,
