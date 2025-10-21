@@ -135,6 +135,19 @@ export default function CustomerMenuPage() {
   const [completedOrder, setCompletedOrder] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
 
+  // Bloquear scroll del body cuando hay modales abiertos
+  useEffect(() => {
+    if (showCheckout || showProductModal || showMapModal || showHoursModal || completedOrder) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showCheckout, showProductModal, showMapModal, showHoursModal, completedOrder])
+
   useEffect(() => {
     setMounted(true)
     loadStoreData()
