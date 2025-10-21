@@ -1,18 +1,5 @@
-// Importaciones condicionales para evitar errores en build
-let z: any
-let DOMPurify: any
-
-try {
-  z = require('zod')
-} catch (error) {
-  console.warn('Zod not available, validation will be disabled')
-}
-
-try {
-  DOMPurify = require('isomorphic-dompurify')
-} catch (error) {
-  console.warn('DOMPurify not available, sanitization will be disabled')
-}
+import { z } from 'zod'
+import DOMPurify from 'isomorphic-dompurify'
 
 // Esquemas de validación para diferentes entidades
 export const userSchema = z.object({
@@ -64,7 +51,8 @@ export const orderSchema = z.object({
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios')
     .trim(),
   customerWhatsApp: z.string()
-    .regex(/^\d{10}$/, 'El WhatsApp debe tener exactamente 10 dígitos'),
+    .regex(/^[\d\s\-\+\(\)]{10,20}$/, 'Formato de WhatsApp inválido')
+    .transform((val: string) => val.replace(/\D/g, '')), // Limpiar caracteres no numéricos
   customerEmail: z.string()
     .email('Email inválido')
     .optional(),
@@ -80,9 +68,9 @@ export const orderSchema = z.object({
     neighborhood: z.string().min(1, 'La colonia es requerida').max(100, 'Colonia muy larga').trim(),
     reference: z.string().max(500, 'Referencias muy largas').trim().optional(),
     houseType: z.enum(['casa', 'departamento', 'oficina', 'otro']).optional()
-  }).optional(),
+  }).optional().nullable(),
   items: z.array(z.object({
-    id: z.string().cuid('ID de producto inválido'),
+    id: z.string().min(1, 'ID de producto requerido'),
     name: z.string().min(1, 'Nombre de producto requerido'),
     price: z.number().min(0, 'Precio inválido'),
     quantity: z.number().int().min(1, 'Cantidad mínima: 1').max(100, 'Cantidad máxima: 100'),
@@ -109,7 +97,8 @@ export const storeSettingsSchema = z.object({
     .regex(/^[a-z0-9\-]+$/, 'El slug solo puede contener letras minúsculas, números y guiones')
     .trim(),
   whatsappMainNumber: z.string()
-    .regex(/^\d{10}$/, 'El WhatsApp debe tener exactamente 10 dígitos')
+    .regex(/^[\d\s\-\+\(\)]{10,20}$/, 'Formato de WhatsApp inválido')
+    .transform((val: string) => val.replace(/\D/g, ''))
     .optional(),
   phoneNumber: z.string()
     .regex(/^\d{10}$/, 'El teléfono debe tener exactamente 10 dígitos')

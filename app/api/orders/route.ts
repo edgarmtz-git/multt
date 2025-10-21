@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { orderSchema } from '@/lib/validation'
-import { ZodError } from 'zod'
 
 // POST - Crear nuevo pedido
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 Starting order creation...')
     const body = await request.json()
+    console.log('📝 Received body:', JSON.stringify(body, null, 2))
 
     // Validar con Zod
+    console.log('🔍 Starting validation...')
     const validationResult = orderSchema.safeParse({
       customerName: body.customerName,
       customerWhatsApp: body.customerWhatsApp,
@@ -22,12 +24,44 @@ export async function POST(request: NextRequest) {
       total: body.total,
       observations: body.observations
     })
+    console.log('✅ Validation completed, success:', validationResult.success)
 
     if (!validationResult.success) {
+      console.log('❌ Validation failed:', {
+        errors: validationResult.error.errors,
+        receivedData: {
+          customerName: body.customerName,
+          customerWhatsApp: body.customerWhatsApp,
+          customerEmail: body.customerEmail,
+          deliveryMethod: body.deliveryMethod,
+          paymentMethod: body.paymentMethod,
+          address: body.address,
+          items: body.items,
+          subtotal: body.subtotal,
+          deliveryFee: body.deliveryFee,
+          total: body.total,
+          observations: body.observations
+        }
+      })
+      
       return NextResponse.json(
         {
           error: 'Datos inválidos',
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
+          errorCount: validationResult.error.errors.length,
+          receivedData: {
+            customerName: body.customerName,
+            customerWhatsApp: body.customerWhatsApp,
+            customerEmail: body.customerEmail,
+            deliveryMethod: body.deliveryMethod,
+            paymentMethod: body.paymentMethod,
+            address: body.address,
+            items: body.items,
+            subtotal: body.subtotal,
+            deliveryFee: body.deliveryFee,
+            total: body.total,
+            observations: body.observations
+          }
         },
         { status: 400 }
       )
@@ -128,7 +162,7 @@ export async function POST(request: NextRequest) {
       return { order, orderItems }
     })
 
-    // Preparar datos de respuesta
+    // Preparar datos de respuesta - Fixed
     const orderData = {
       id: result.order.id,
       orderNumber,

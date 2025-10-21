@@ -912,14 +912,41 @@ export default function CustomerMenuPage() {
           <div className="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
               <SingleCardCheckout
                 storeSlug={storeInfo.storeSlug}
-                cartItems={cart.map(item => ({
-                  id: item.product.id,
-                  name: item.product.name,
-                  quantity: item.quantity,
-                  price: item.price || 0,
-                  variantName: (item as any).variantName,
-                  options: (item as any).options
-                }))}
+                cartItems={cart.map(item => {
+                  // Obtener el nombre de la variante seleccionada
+                  const variantName = item.selectedVariants && item.selectedVariants.length > 0
+                    ? item.selectedVariants[0].name
+                    : undefined
+
+                  // Obtener el ID de la variante seleccionada
+                  const variantId = item.selectedVariants && item.selectedVariants.length > 0
+                    ? item.selectedVariants[0].id
+                    : undefined
+
+                  // Transformar selectedOptions a un array plano de opciones
+                  const options: any[] = []
+                  if (item.selectedOptions) {
+                    Object.entries(item.selectedOptions).forEach(([optionId, choices]) => {
+                      choices.forEach(choice => {
+                        options.push({
+                          name: choice.name,
+                          value: choice.name,
+                          price: choice.price || 0
+                        })
+                      })
+                    })
+                  }
+
+                  return {
+                    id: item.product.id,
+                    name: item.product.name,
+                    quantity: item.quantity,
+                    price: item.price || 0,
+                    variantName,
+                    variantId,
+                    options
+                  }
+                })}
                 subtotal={totals.subtotal}
                 deliveryFee={totals.deliveryFee}
                 total={totals.total}

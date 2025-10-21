@@ -54,7 +54,7 @@ async function main() {
       storeSlug: 'lacasadelsabor',
       email: 'pedidos@lacasadelsabor.com',
       address: 'Av. Reforma 123, Col. Centro, CDMX',
-      whatsappMainNumber: '+52 55 1234 5678',
+      whatsappMainNumber: '9711260809',
       phoneNumber: '+52 55 8765 4321',
       country: 'Mexico',
       language: 'es',

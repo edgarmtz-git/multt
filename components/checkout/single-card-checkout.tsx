@@ -35,6 +35,7 @@ interface CartItem {
   quantity: number
   price: number
   variantName?: string
+  variantId?: string
   options?: any[]
 }
 
@@ -113,6 +114,7 @@ export default function SingleCardCheckout({
   // Información del cliente
   const [customerName, setCustomerName] = useState('')
   const [customerWhatsApp, setCustomerWhatsApp] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
 
   // Método de entrega
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup')
@@ -253,14 +255,26 @@ export default function SingleCardCheckout({
     setIsLoading(true)
 
     try {
+      // Transformar items del carrito al formato esperado por la API
+      const formattedItems = cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        variantName: item.variantName,
+        variantId: item.variantId || null,
+        options: item.options || []
+      }))
+
       const orderData = {
         orderNumber: `PED${Date.now()}`,
         customerName,
         customerWhatsApp,
+        customerEmail: customerEmail.trim() || undefined,
         deliveryMethod,
         paymentMethod,
         address: deliveryMethod === 'delivery' ? addressFields : null,
-        items: cartItems,
+        items: formattedItems,
         subtotal: subtotal || 0,
         deliveryFee: deliveryMethod === 'delivery' ? (deliveryCalculation ? calculatedDeliveryFee : (deliveryFee || 0)) : 0,
         total: deliveryMethod === 'delivery' ? ((subtotal || 0) + (deliveryCalculation ? calculatedDeliveryFee : (deliveryFee || 0))) : (subtotal || 0),
@@ -279,7 +293,9 @@ export default function SingleCardCheckout({
       })
 
       if (!orderResponse.ok) {
-        throw new Error('Error al crear pedido en el sistema')
+        const errorData = await orderResponse.json().catch(() => ({}))
+        console.error('❌ Error del servidor:', errorData)
+        throw new Error(errorData.error || 'Error al crear pedido en el sistema')
       }
 
       const orderResult = await orderResponse.json()

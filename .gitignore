@@ -48,3 +48,4 @@ verify-maria-deleted.js
 # test files (keep next-env.d.ts for TypeScript)
 # app/test-*
 # public/test-*
+.env*.local
