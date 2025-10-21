@@ -487,11 +487,11 @@ export default function SingleCardCheckout({
                 <SelectTrigger className="w-full h-12 text-base">
                   <SelectValue placeholder="Elige cómo quieres recibir tu pedido" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pickup">
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="pickup" className="h-auto py-3">
                     <div className="flex items-center gap-3">
-                      <Store className="h-4 w-4 text-blue-500" />
-                      <div>
+                      <Store className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium">Recoger en local</p>
                         <p className="text-sm text-gray-600">Sin costo de envío</p>
                       </div>
@@ -499,10 +499,10 @@ export default function SingleCardCheckout({
                   </SelectItem>
                   {/* Solo mostrar opción de delivery si está habilitado en la tienda */}
                   {storeInfo?.deliveryEnabled && (
-                    <SelectItem value="delivery">
+                    <SelectItem value="delivery" className="h-auto py-3">
                       <div className="flex items-center gap-3">
-                        <Home className="h-4 w-4 text-green-500" />
-                        <div>
+                        <Home className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium">Entrega a domicilio</p>
                           <p className="text-sm text-gray-600">
                             {deliveryCalculation && calculatedDeliveryFee > 0 ? (

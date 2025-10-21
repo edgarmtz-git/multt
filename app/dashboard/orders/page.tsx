@@ -15,6 +15,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { OrdersListWithFilter } from "@/components/orders/orders-list-with-filter"
 
 export default async function OrdersPage() {
   const session = await getServerSession(authOptions)
@@ -155,55 +156,8 @@ export default async function OrdersPage() {
           </Card>
         </div>
 
-        {/* Orders List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pedidos Recientes</CardTitle>
-            <CardDescription>
-              Lista de todos los pedidos recibidos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {orders.map((order: any) => (
-                <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    {getStatusIcon(order.status)}
-                    <div>
-                      <p className="font-medium">#{order.id.slice(-6)}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {order.customerName}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <p className="font-medium">${order.total.toFixed(2)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                      </p>
-                    </div>
-                    
-                    <div className="text-right">
-                      {getStatusBadge(order.status)}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </p>
-                    </div>
-                    
-                    <Link href={`/dashboard/orders/${order.id}`}>
-                      <Button variant="outline" size="sm">
-                        Ver Detalles
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Orders List with Filters */}
+        <OrdersListWithFilter orders={orders as any} />
         </div>
       </div>
     </DashboardLayout>

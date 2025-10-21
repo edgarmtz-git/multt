@@ -9,7 +9,9 @@ import {
   MapPin,
   CreditCard,
   Clock,
-  Phone
+  Phone,
+  ExternalLink,
+  Copy
 } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -17,6 +19,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { OrderStatusSelector } from "@/components/orders/order-status-selector"
+import { TrackingLinkCard } from "@/components/orders/tracking-link-card"
 
 export default async function OrderDetailPage({
   params
@@ -144,6 +147,12 @@ export default async function OrderDetailPage({
               />
             </div>
           </div>
+
+          {/* Link de Tracking */}
+          <TrackingLinkCard
+            orderId={order.id}
+            orderNumber={order.orderNumber || order.id.slice(-8)}
+          />
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* Información del Cliente */}

@@ -166,11 +166,11 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
     <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
       <div className="bg-white w-full h-screen md:h-auto md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[90vh] md:rounded-lg overflow-hidden flex flex-col shadow-2xl">
         {/* Content scrolleable - incluye imagen y toda la información */}
-        <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
+        <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth pb-safe">
           {/* Header con imagen grande */}
           <div className="relative">
             {product.imageUrl ? (
-              <div className="h-[50vh] sm:h-80 bg-gray-100">
+              <div className="h-64 sm:h-80 bg-gray-100">
                 <img
                   src={product.imageUrl}
                   alt={product.name}
@@ -178,17 +178,18 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                 />
               </div>
             ) : (
-              <div className="h-[50vh] sm:h-80 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+              <div className="h-64 sm:h-80 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                 <span className="text-8xl">🍽️</span>
               </div>
             )}
+            {/* Botón de cerrar con mejor visibilidad */}
             <Button
               variant="ghost"
               size="sm"
-              className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2"
+              className="absolute top-2 right-2 md:top-3 md:right-3 bg-white/95 hover:bg-white rounded-full p-2.5 md:p-2 shadow-lg z-10"
               onClick={onClose}
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5 md:h-4 md:w-4 text-gray-900" />
             </Button>
           </div>
 
