@@ -48,7 +48,7 @@ export const orderSchema = z.object({
   customerName: z.string()
     .min(2, 'El nombre del cliente debe tener al menos 2 caracteres')
     .max(100, 'El nombre del cliente es muy largo')
-    .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras, números y espacios')
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'No se pueden poner números o caracteres especiales en el nombre')
     .trim(),
   customerWhatsApp: z.string()
     .regex(/^[\d\s\-\+\(\)]{10,20}$/, 'Formato de WhatsApp inválido')

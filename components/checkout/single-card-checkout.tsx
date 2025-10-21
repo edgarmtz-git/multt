@@ -295,7 +295,8 @@ export default function SingleCardCheckout({
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json().catch(() => ({}))
         console.error('❌ Error del servidor:', errorData)
-        throw new Error(errorData.error || 'Error al crear pedido en el sistema')
+        const errorMessage = errorData.message || errorData.error || 'Error al crear pedido en el sistema'
+        throw new Error(errorMessage)
       }
 
       const orderResult = await orderResponse.json()
@@ -315,7 +316,8 @@ export default function SingleCardCheckout({
       
     } catch (error) {
       console.error('Error sending order:', error)
-      toast.error('Error al enviar el pedido')
+      const errorMessage = error instanceof Error ? error.message : 'Error al enviar el pedido'
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
