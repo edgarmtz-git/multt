@@ -60,11 +60,23 @@ const statusConfig = {
     color: 'bg-green-100 text-green-800',
     description: 'Tu pedido está listo para entrega'
   },
+  IN_DELIVERY: {
+    label: 'En camino',
+    icon: Truck,
+    color: 'bg-blue-100 text-blue-800',
+    description: 'Tu pedido está en camino'
+  },
   DELIVERED: {
     label: 'Entregado',
-    icon: Truck,
+    icon: Home,
     color: 'bg-green-100 text-green-800',
     description: 'Tu pedido ha sido entregado'
+  },
+  COMPLETED: {
+    label: 'Completado',
+    icon: CheckCircle,
+    color: 'bg-green-100 text-green-800',
+    description: 'Pedido completado exitosamente'
   },
   CANCELLED: {
     label: 'Cancelado',
@@ -74,7 +86,7 @@ const statusConfig = {
   }
 }
 
-const statusSteps = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED']
+const statusSteps = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'IN_DELIVERY', 'DELIVERED', 'COMPLETED']
 
 export default function OrderTrackingPage() {
   const params = useParams()
@@ -144,8 +156,9 @@ export default function OrderTrackingPage() {
     )
   }
 
-  const currentStatus = statusConfig[order.status as keyof typeof statusConfig]
+  const currentStatus = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.PENDING
   const currentStepIndex = statusSteps.indexOf(order.status)
+  const isCancelled = order.status === 'CANCELLED'
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -174,45 +187,62 @@ export default function OrderTrackingPage() {
           </CardHeader>
         </Card>
 
-        {/* Progress Steps */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Progreso del Pedido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {statusSteps.map((step, index) => {
-                const stepConfig = statusConfig[step as keyof typeof statusConfig]
-                const isCompleted = index <= currentStepIndex
-                const isCurrent = index === currentStepIndex
+        {/* Progress Steps - Solo mostrar si NO está cancelado */}
+        {!isCancelled && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Progreso del Pedido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {statusSteps.map((step, index) => {
+                  const stepConfig = statusConfig[step as keyof typeof statusConfig]
+                  const isCompleted = index <= currentStepIndex
+                  const isCurrent = index === currentStepIndex
 
-                return (
-                  <div key={step} className="flex items-center gap-3">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      isCompleted 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      {isCompleted ? (
-                        <CheckCircle className="h-4 w-4" />
-                      ) : (
-                        <stepConfig.icon className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-medium ${
-                        isCurrent ? 'text-green-600' : isCompleted ? 'text-gray-900' : 'text-gray-500'
+                  return (
+                    <div key={step} className="flex items-center gap-3">
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        isCompleted
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-500'
                       }`}>
-                        {stepConfig.label}
-                      </p>
-                      <p className="text-sm text-gray-600">{stepConfig.description}</p>
+                        {isCompleted ? (
+                          <CheckCircle className="h-4 w-4" />
+                        ) : (
+                          <stepConfig.icon className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium ${
+                          isCurrent ? 'text-green-600' : isCompleted ? 'text-gray-900' : 'text-gray-500'
+                        }`}>
+                          {stepConfig.label}
+                        </p>
+                        <p className="text-sm text-gray-600">{stepConfig.description}</p>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Mensaje especial para cancelado */}
+        {isCancelled && (
+          <Card className="mb-6 border-red-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-red-900 mb-2">Pedido Cancelado</h3>
+                <p className="text-gray-600">
+                  Este pedido ha sido cancelado. Si tienes dudas, contacta con la tienda.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Order Details */}
         <Card className="mb-6">
