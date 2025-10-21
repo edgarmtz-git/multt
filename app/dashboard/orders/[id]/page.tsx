@@ -16,6 +16,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { OrderStatusSelector } from "@/components/orders/order-status-selector"
 
 export default async function OrderDetailPage({
   params
@@ -135,8 +136,12 @@ export default async function OrderDetailPage({
                 #{order.orderNumber || order.id.slice(-8)}
               </p>
             </div>
-            <div>
+            <div className="flex items-center gap-3">
               {getStatusBadge(order.status)}
+              <OrderStatusSelector
+                orderId={order.id}
+                currentStatus={order.status}
+              />
             </div>
           </div>
 
