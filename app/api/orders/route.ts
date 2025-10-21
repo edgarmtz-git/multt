@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
 
     if (!validationResult.success) {
       console.log('❌ Validation failed:', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
+        firstError: validationResult.error.issues[0],
         receivedData: {
           customerName: body.customerName,
           customerWhatsApp: body.customerWhatsApp,
@@ -37,31 +38,21 @@ export async function POST(request: NextRequest) {
           paymentMethod: body.paymentMethod,
           address: body.address,
           items: body.items,
+          itemsCount: body.items?.length,
+          firstItem: body.items?.[0],
           subtotal: body.subtotal,
           deliveryFee: body.deliveryFee,
           total: body.total,
           observations: body.observations
         }
       })
-      
+
       return NextResponse.json(
         {
           error: 'Datos inválidos',
-          details: validationResult.error.errors,
-          errorCount: validationResult.error.errors.length,
-          receivedData: {
-            customerName: body.customerName,
-            customerWhatsApp: body.customerWhatsApp,
-            customerEmail: body.customerEmail,
-            deliveryMethod: body.deliveryMethod,
-            paymentMethod: body.paymentMethod,
-            address: body.address,
-            items: body.items,
-            subtotal: body.subtotal,
-            deliveryFee: body.deliveryFee,
-            total: body.total,
-            observations: body.observations
-          }
+          message: validationResult.error.issues[0]?.message || 'Error de validación',
+          details: validationResult.error.issues,
+          errorCount: validationResult.error.issues.length
         },
         { status: 400 }
       )
