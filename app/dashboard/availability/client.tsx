@@ -202,57 +202,78 @@ export function AvailabilityPageClient({ initialSchedule }: AvailabilityPageClie
           </CardContent>
         </Card>
 
-        {/* Business Hours */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Horarios Comerciales
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {days.map((day) => {
-                const dayData = schedule?.operatingHours?.[day.key as keyof typeof schedule.operatingHours]
-                return (
-                  <div key={day.key} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-20 text-sm font-medium">{day.name}</div>
-                      <Badge variant={dayData?.isOpen ? "default" : "secondary"}>
-                        {dayData?.isOpen ? "Abierto" : "Cerrado"}
-                      </Badge>
-                    </div>
-                    
-                    {dayData?.isOpen ? (
-                      <div className="flex items-center gap-2 text-sm">
-                        {dayData?.periods?.map((period: any, index: number) => (
-                          <span key={index} className="bg-blue-50 px-2 py-1 rounded text-blue-800">
-                            {period.open} - {period.close}
-                          </span>
-                        ))}
+        {/* Business Hours - Vista o Editor según estado */}
+        {!isEditing ? (
+          // Vista de solo lectura
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Horarios Comerciales
+                </CardTitle>
+                <Button onClick={() => setIsEditing(true)} variant="default">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Editar Horarios
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {days.map((day) => {
+                  const dayData = schedule?.operatingHours?.[day.key as keyof typeof schedule.operatingHours]
+                  return (
+                    <div key={day.key} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-20 text-sm font-medium">{day.name}</div>
+                        <Badge variant={dayData?.isOpen ? "default" : "secondary"}>
+                          {dayData?.isOpen ? "Abierto" : "Cerrado"}
+                        </Badge>
                       </div>
-                    ) : (
-                      <Badge variant="secondary">Cerrado</Badge>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            
-            <div className="mt-4 flex justify-end">
-              <Button onClick={() => setIsEditing(!isEditing)}>
-                {isEditing ? 'Ver Horarios' : 'Editar Horarios'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Schedule Editor */}
-        {isEditing && (
-          <ScheduleEditor 
-            initialSchedule={schedule} 
-            onSave={handleSave}
-          />
+                      {dayData?.isOpen ? (
+                        <div className="flex items-center gap-2 text-sm">
+                          {dayData?.periods?.map((period: any, index: number) => (
+                            <span key={index} className="bg-blue-50 px-2 py-1 rounded text-blue-800">
+                              {period.open} - {period.close}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <Badge variant="secondary">Cerrado</Badge>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          // Modo de edición
+          <Card className="border-2 border-blue-500">
+            <CardHeader className="bg-blue-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Editando Horarios Comerciales
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Activa los días que operas y configura los horarios
+                  </p>
+                </div>
+                <Button onClick={() => setIsEditing(false)} variant="outline">
+                  Cancelar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <ScheduleEditor
+                initialSchedule={schedule}
+                onSave={handleSave}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
