@@ -75,6 +75,7 @@ export const orderSchema = z.object({
     price: z.number().min(0, 'Precio inválido'),
     quantity: z.number().int().min(1, 'Cantidad mínima: 1').max(100, 'Cantidad máxima: 100'),
     variantName: z.string().optional(),
+    variantId: z.string().optional().nullable(),
     options: z.array(z.object({
       name: z.string(),
       value: z.string()
