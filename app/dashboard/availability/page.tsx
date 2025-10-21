@@ -22,16 +22,16 @@ export default async function AvailabilityPage() {
     }
   })
 
-  // Configuración por defecto si no existe
+  // Configuración por defecto si no existe - TODOS CERRADOS hasta que el usuario configure
   const defaultSchedule = {
     operatingHours: {
-      monday: { isOpen: true, periods: [{ open: "09:00", close: "22:00" }] },
-      tuesday: { isOpen: true, periods: [{ open: "09:00", close: "22:00" }] },
-      wednesday: { isOpen: true, periods: [{ open: "09:00", close: "22:00" }] },
-      thursday: { isOpen: true, periods: [{ open: "09:00", close: "22:00" }] },
-      friday: { isOpen: true, periods: [{ open: "09:00", close: "23:00" }] },
-      saturday: { isOpen: true, periods: [{ open: "10:00", close: "23:00" }] },
-      sunday: { isOpen: true, periods: [{ open: "11:00", close: "21:00" }] }
+      monday: { isOpen: false, periods: [{ open: "09:00", close: "22:00" }] },
+      tuesday: { isOpen: false, periods: [{ open: "09:00", close: "22:00" }] },
+      wednesday: { isOpen: false, periods: [{ open: "09:00", close: "22:00" }] },
+      thursday: { isOpen: false, periods: [{ open: "09:00", close: "22:00" }] },
+      friday: { isOpen: false, periods: [{ open: "09:00", close: "23:00" }] },
+      saturday: { isOpen: false, periods: [{ open: "10:00", close: "23:00" }] },
+      sunday: { isOpen: false, periods: [{ open: "11:00", close: "21:00" }] }
     },
     deliveryOptions: {
       enabled: true,
