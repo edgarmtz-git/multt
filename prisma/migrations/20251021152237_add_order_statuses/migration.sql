@@ -1,8 +1,35 @@
 -- AlterEnum: Add missing order statuses
-ALTER TYPE "OrderStatus" ADD VALUE 'PREPARING';
-ALTER TYPE "OrderStatus" ADD VALUE 'READY';
-ALTER TYPE "OrderStatus" ADD VALUE 'IN_DELIVERY';
-ALTER TYPE "OrderStatus" ADD VALUE 'COMPLETED';
+-- PostgreSQL allows adding enum values but not removing them in a simple way
+-- We add the new values and keep SHIPPED for backward compatibility
 
--- Note: SHIPPED is not removed to preserve existing data compatibility
--- If you want to remove SHIPPED, you would need to first migrate any existing SHIPPED orders to another status
+-- Add new enum values if they don't exist
+DO $$ BEGIN
+    ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'PREPARING';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'READY';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'IN_DELIVERY';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'COMPLETED';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Note: SHIPPED is kept for backward compatibility
+-- To remove it, you would need to:
+-- 1. Migrate all SHIPPED orders to another status
+-- 2. Create a new enum without SHIPPED
+-- 3. Alter the column to use the new enum
+-- 4. Drop the old enum
