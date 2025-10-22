@@ -271,7 +271,19 @@ export function MobileMenuLayout({
       {showCheckout && (
         <SingleCardCheckout
           storeSlug={storeInfo.storeSlug}
-          cartItems={cart}
+          cartItems={cart.map(item => ({
+            id: item.product.id,
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.price,
+            variantName: item.selectedVariants && item.selectedVariants.length > 0 
+              ? item.selectedVariants[0].name 
+              : undefined,
+            variantId: item.selectedVariants && item.selectedVariants.length > 0 
+              ? item.selectedVariants[0].id 
+              : undefined,
+            options: item.selectedOptions
+          }))}
           subtotal={cart.reduce((sum, item) => sum + item.totalPrice, 0)}
           deliveryFee={storeInfo.deliveryEnabled ? (storeInfo.baseDeliveryPrice || 0) : 0}
           total={cart.reduce((sum, item) => sum + item.totalPrice, 0) + (storeInfo.deliveryEnabled ? (storeInfo.baseDeliveryPrice || 0) : 0)}
