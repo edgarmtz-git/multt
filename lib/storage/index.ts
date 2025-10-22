@@ -41,18 +41,41 @@ export async function getStorageProvider(): Promise<StorageAdapter> {
   // Leer configuración de ambiente
   const providerType = (process.env.STORAGE_PROVIDER || 'local') as StorageProvider
 
+  console.log('🔧 Storage Provider Configuration:', {
+    providerType,
+    hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+    hasS3Config: !!(process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY),
+    nodeEnv: process.env.NODE_ENV
+  })
+
   // Crear provider según configuración
-  switch (providerType) {
-    case 'vercel-blob':
-      cachedProvider = await getVercelBlobProvider()
-      break
-    case 's3':
-      cachedProvider = await getS3Provider()
-      break
-    case 'local':
-    default:
-      cachedProvider = await getLocalProvider()
-      break
+  try {
+    switch (providerType) {
+      case 'vercel-blob':
+        if (!process.env.BLOB_READ_WRITE_TOKEN) {
+          console.warn('⚠️ Vercel Blob configurado pero BLOB_READ_WRITE_TOKEN no encontrado, usando local storage')
+          cachedProvider = await getLocalProvider()
+        } else {
+          cachedProvider = await getVercelBlobProvider()
+        }
+        break
+      case 's3':
+        if (!process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY) {
+          console.warn('⚠️ S3 configurado pero credenciales no encontradas, usando local storage')
+          cachedProvider = await getLocalProvider()
+        } else {
+          cachedProvider = await getS3Provider()
+        }
+        break
+      case 'local':
+      default:
+        cachedProvider = await getLocalProvider()
+        break
+    }
+  } catch (error) {
+    console.error('❌ Error creating storage provider:', error)
+    console.log('🔄 Falling back to local storage')
+    cachedProvider = await getLocalProvider()
   }
 
   return cachedProvider

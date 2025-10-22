@@ -83,8 +83,21 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error uploading image:', error)
+    
+    // Log más detallado para debugging
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      storageProvider: process.env.STORAGE_PROVIDER || 'local',
+      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+      hasS3Config: !!(process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY)
+    })
+    
     return NextResponse.json(
-      { message: 'Error interno del servidor' }, 
+      { 
+        message: 'Error interno del servidor',
+        error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+      }, 
       { status: 500 }
     )
   }

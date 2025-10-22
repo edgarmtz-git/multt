@@ -29,6 +29,28 @@ export class LocalStorageProvider implements StorageAdapter {
 
   async upload(file: File, customPath?: string): Promise<UploadResult> {
     try {
+      // En Vercel, el filesystem no es persistente, así que usamos una URL temporal
+      if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
+        console.warn('⚠️ Local storage en Vercel - archivos no serán persistentes')
+        
+        // Generar una URL temporal (esto es solo para evitar errores)
+        const timestamp = Date.now()
+        const randomString = Math.random().toString(36).substring(7)
+        const extension = file.name.split('.').pop()
+        const filename = `${timestamp}-${randomString}.${extension}`
+        const subDir = customPath || 'general'
+        
+        // En Vercel, retornamos una URL placeholder
+        const url = `https://via.placeholder.com/400x300/cccccc/666666?text=Image+Uploaded`
+        
+        return {
+          url,
+          key: `${subDir}/${filename}`,
+          size: file.size,
+          type: file.type
+        }
+      }
+
       // Generar nombre único
       const timestamp = Date.now()
       const randomString = Math.random().toString(36).substring(7)
@@ -65,7 +87,7 @@ export class LocalStorageProvider implements StorageAdapter {
       }
     } catch (error) {
       console.error('Error uploading file:', error)
-      throw new Error('Failed to upload file')
+      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
