@@ -56,6 +56,7 @@ interface StoreInfo {
   unifiedSchedule: any
   storeActive: boolean
   passwordProtected: boolean
+  enableBusinessHours: boolean
   bannerImage?: string
   profileImage?: string
 }
