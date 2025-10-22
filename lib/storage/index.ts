@@ -1,7 +1,7 @@
 // Factory para crear el provider de storage correcto según configuración
 // Permite cambiar entre Local, Vercel Blob, o S3 sin cambiar código
 
-import type { StorageProvider, StorageProviderType } from './types'
+import type { StorageAdapter, StorageProvider } from './types'
 
 // Lazy imports de providers
 async function getLocalProvider() {
@@ -30,16 +30,16 @@ async function getS3Provider() {
 }
 
 // Singleton para evitar crear múltiples instancias
-let cachedProvider: StorageProvider | null = null
+let cachedProvider: StorageAdapter | null = null
 
-export async function getStorageProvider(): Promise<StorageProvider> {
+export async function getStorageProvider(): Promise<StorageAdapter> {
   // Si ya existe una instancia, retornarla
   if (cachedProvider) {
     return cachedProvider
   }
 
   // Leer configuración de ambiente
-  const providerType = (process.env.STORAGE_PROVIDER || 'local') as StorageProviderType
+  const providerType = (process.env.STORAGE_PROVIDER || 'local') as StorageProvider
 
   // Crear provider según configuración
   switch (providerType) {
@@ -64,4 +64,4 @@ export function resetStorageProvider() {
 }
 
 // Re-exportar tipos para facilitar imports
-export type { StorageProvider, UploadResult, StorageProviderType } from './types'
+export type { StorageAdapter, StorageProvider, UploadResult } from './types'
