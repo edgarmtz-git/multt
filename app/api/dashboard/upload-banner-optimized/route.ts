@@ -2,18 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile, mkdir, unlink } from 'fs/promises'
-import { join } from 'path'
+import { getStorageProvider } from '@/lib/storage'
 import sharp from 'sharp'
-
-function generateUniqueId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-}
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
     }
@@ -25,20 +20,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Imagen requerida' }, { status: 400 })
     }
 
-    // Check if running on Vercel (serverless)
-    if (process.env.VERCEL) {
-      return NextResponse.json({
-        message: 'El upload de imágenes requiere configurar Vercel Blob Storage. Por ahora, puedes usar URLs de imágenes externas (Imgur, Cloudinary, etc).',
-        error: 'STORAGE_NOT_CONFIGURED'
-      }, { status: 501 })
-    }
-
-    // Crear directorio si no existe (solo funciona en local)
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'store-images')
-    await mkdir(uploadsDir, { recursive: true })
-
     const buffer = Buffer.from(await image.arrayBuffer())
-    
+
     console.log('🔍 Procesando banner optimizado:', {
       originalName: image.name,
       mimeType: image.type,
@@ -55,8 +38,8 @@ export async function POST(request: NextRequest) {
 
     // Dimensiones exactas de la cabecera (basadas en el CSS real)
     const headerDimensions = {
-      mobile: { width: 800, height: 160 },  // h-40 = 160px, asumiendo ancho de 800px en móvil
-      desktop: { width: 1200, height: 192 } // lg:h-48 = 192px, asumiendo ancho de 1200px en desktop
+      mobile: { width: 800, height: 160 },  // h-40 = 160px
+      desktop: { width: 1200, height: 192 } // lg:h-48 = 192px
     }
 
     // Usar dimensiones de desktop como estándar (más grande)
@@ -76,39 +59,57 @@ export async function POST(request: NextRequest) {
 
     // Procesar imagen con Sharp - redimensionar al tamaño exacto de la cabecera
     const processedBuffer = await sharp(buffer)
-      .resize(targetWidth, targetHeight, { 
+      .resize(targetWidth, targetHeight, {
         fit: 'cover', // Cubrir completamente el área, recortando si es necesario
         position: 'center' // Centrar la imagen al recortar
       })
-      .jpeg({ 
+      .jpeg({
         quality: 90,
         progressive: true,
         mozjpeg: true
       })
       .toBuffer()
 
-    // Generar nombre único para el archivo
-    const fileName = `banner-${session.user.id}-${generateUniqueId()}.jpg`
-    const filePath = join(uploadsDir, fileName)
+    // Crear un File desde el buffer procesado
+    const processedFile = new File(
+      [processedBuffer],
+      `banner-${Date.now()}.jpg`,
+      { type: 'image/jpeg' }
+    )
 
-    // Guardar imagen procesada
-    await writeFile(filePath, processedBuffer)
+    // Usar el sistema de storage multi-provider
+    const storage = await getStorageProvider()
+    const userId = session.user.id
+    const uploadResult = await storage.upload(processedFile, `store-${userId}/banners`)
 
-    // Generar URL relativa
-    const imageUrl = `/uploads/store-images/${fileName}`
+    console.log('✅ Banner subido al storage:', uploadResult)
 
-    // Eliminar imagen anterior si existe
+    // Eliminar imagen anterior si existe (solo si es del mismo provider)
     const currentSettings = await prisma.storeSettings.findUnique({
       where: { userId: session.user.id },
       select: { bannerImage: true }
     })
 
-    const currentImagePath = currentSettings?.bannerImage
-    if (currentImagePath && currentImagePath.startsWith('/uploads/')) {
-      const oldFilePath = join(process.cwd(), 'public', currentImagePath)
+    if (currentSettings?.bannerImage) {
       try {
-        await unlink(oldFilePath)
-        console.log('✅ Imagen anterior eliminada:', oldFilePath)
+        // Intentar extraer el key de la URL anterior
+        // Para local: /uploads/store-xxx/banners/...
+        // Para Blob: https://xxx.blob.vercel-storage.com/store-xxx/banners/...
+        const oldImageUrl = currentSettings.bannerImage
+
+        if (oldImageUrl.startsWith(`/uploads/store-${userId}/`)) {
+          // Es del storage local, extraer el key
+          const key = oldImageUrl.replace('/uploads/', '')
+          await storage.delete(key)
+          console.log('✅ Imagen anterior eliminada:', key)
+        } else if (oldImageUrl.includes(`store-${userId}/banners/`)) {
+          // Es de Blob o S3, intentar extraer el key
+          const keyMatch = oldImageUrl.match(/store-[^/]+\/banners\/.+$/)
+          if (keyMatch) {
+            await storage.delete(keyMatch[0])
+            console.log('✅ Imagen anterior eliminada:', keyMatch[0])
+          }
+        }
       } catch (error) {
         console.log('⚠️ No se pudo eliminar imagen anterior:', error)
       }
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     // Actualizar en la base de datos
     await prisma.storeSettings.upsert({
       where: { userId: session.user.id },
-      update: { bannerImage: imageUrl },
+      update: { bannerImage: uploadResult.url },
       create: {
         userId: session.user.id,
         storeName: 'Mi Tienda',
@@ -134,15 +135,14 @@ export async function POST(request: NextRequest) {
         paymentsEnabled: true,
         storeActive: false,
         passwordProtected: false,
-        bannerImage: imageUrl
+        bannerImage: uploadResult.url
       }
     })
 
     const compressionRatio = Math.round((1 - processedBuffer.length / buffer.length) * 100)
-    
+
     console.log('✅ Banner optimizado y guardado:', {
-      fileName,
-      imageUrl,
+      imageUrl: uploadResult.url,
       originalSize: buffer.length,
       processedSize: processedBuffer.length,
       compressionRatio: compressionRatio + '%',
@@ -153,8 +153,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      fileName,
-      imageUrl,
+      imageUrl: uploadResult.url,
       originalSize: buffer.length,
       processedSize: processedBuffer.length,
       compressionRatio: compressionRatio + '%',
@@ -166,7 +165,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error en upload-banner-optimized:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Error interno del servidor',
       error: error instanceof Error ? error.message : 'Error desconocido'
     }, { status: 500 })

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { prisma } from '@/lib/prisma'
-
-function generateUniqueId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-}
+import { getStorageProvider } from '@/lib/storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +14,6 @@ export async function POST(request: NextRequest) {
     // Obtener datos del formulario
     const formData = await request.formData()
     const image = formData.get('image') as File
-    const type = formData.get('type') as string
 
     if (!image) {
       return NextResponse.json({ message: 'Imagen requerida' }, { status: 400 })
@@ -36,21 +29,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'La imagen es demasiado grande. Máximo 10MB' }, { status: 400 })
     }
 
-    // Crear directorio si no existe
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'product-images')
-    await mkdir(uploadsDir, { recursive: true })
+    // Usar el sistema de storage multi-provider
+    const storage = await getStorageProvider()
+    const userId = session.user.id
+    const uploadResult = await storage.upload(image, `store-${userId}/products`)
 
-    // Generar nombre único para el archivo
-    const fileExtension = image.name.split('.').pop() || 'jpg'
-    const fileName = `product-${session.user.id}-${generateUniqueId()}.${fileExtension}`
-    const filePath = join(uploadsDir, fileName)
-
-    // Convertir File a Buffer y guardar
-    const buffer = Buffer.from(await image.arrayBuffer())
-    await writeFile(filePath, buffer)
-
-    // Generar URL relativa
-    const imageUrl = `/uploads/product-images/${fileName}`
+    const imageUrl = uploadResult.url
 
     return NextResponse.json({ 
       message: 'Imagen subida correctamente',

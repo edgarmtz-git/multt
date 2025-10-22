@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-// Función para generar ID único sin dependencias externas
-function generateUniqueId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2)
-}
+import { getStorageProvider } from '@/lib/storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,34 +26,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Solo se permiten archivos de imagen' }, { status: 400 })
     }
 
-    // Validar tamaño (máximo 2MB)
-    if (image.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ message: 'La imagen es demasiado grande. Máximo 2MB' }, { status: 400 })
+    // Validar tamaño (máximo 5MB)
+    if (image.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ message: 'La imagen es demasiado grande. Máximo 5MB' }, { status: 400 })
     }
 
-    // Check if running on Vercel (serverless)
-    if (process.env.VERCEL) {
-      return NextResponse.json({
-        message: 'El upload de imágenes requiere configurar Vercel Blob Storage. Por ahora, puedes usar URLs de imágenes externas (Imgur, Cloudinary, etc).',
-        error: 'STORAGE_NOT_CONFIGURED'
-      }, { status: 501 })
-    }
+    // Usar el sistema de storage multi-provider
+    const storage = await getStorageProvider()
+    const userId = session.user.id
 
-    // Crear directorio si no existe (solo funciona en local)
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'store-images')
-    await mkdir(uploadsDir, { recursive: true })
+    // Determinar el path según el tipo
+    const path = type === 'banner' ? 'banners' : 'profile'
+    const uploadResult = await storage.upload(image, `store-${userId}/${path}`)
 
-    // Generar nombre único para el archivo
-    const fileExtension = image.name.split('.').pop() || 'jpg'
-    const fileName = `${type}-${session.user.id}-${generateUniqueId()}.${fileExtension}`
-    const filePath = join(uploadsDir, fileName)
-
-    // Convertir File a Buffer y guardar
-    const buffer = Buffer.from(await image.arrayBuffer())
-    await writeFile(filePath, buffer)
-
-    // Generar URL relativa
-    const imageUrl = `/uploads/store-images/${fileName}`
+    const imageUrl = uploadResult.url
 
     // Actualizar en la base de datos
     const updateData = type === 'banner' 
@@ -90,13 +71,12 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Image uploaded successfully:', {
       type,
-      fileName,
-      imageUrl,
-      fileSize: buffer.length
+      url: uploadResult.url,
+      size: uploadResult.size
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       imageUrl,
       message: `${type === 'banner' ? 'Banner' : 'Foto de perfil'} subida correctamente`
     })
