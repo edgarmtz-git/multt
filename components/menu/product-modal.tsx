@@ -34,6 +34,7 @@ interface ProductOption {
   type: 'text' | 'number' | 'date' | 'checkbox' | 'select' | 'media'
   required: boolean
   choices: ProductOptionChoice[]
+  maxSelections?: number
 }
 
 interface ProductOptionChoice {
