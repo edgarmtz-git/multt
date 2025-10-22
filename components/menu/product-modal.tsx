@@ -298,7 +298,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
                             {option.choices.map((choice: any) => {
                               const isSelected = selectedOptions[option.id]?.some((c: any) => c.id === choice.id) || false
                               const currentCount = selectedOptions[option.id]?.length || 0
-                              const isDisabled = !isSelected && option.maxSelections && currentCount >= option.maxSelections
+                              const isDisabled = !isSelected && !!option.maxSelections && currentCount >= option.maxSelections
                               
                               return (
                                 <div key={choice.id} className={`flex items-center space-x-3 px-4 py-3 border-2 rounded-lg transition-colors ${
