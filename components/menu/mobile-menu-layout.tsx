@@ -82,8 +82,8 @@ interface MobileMenuLayoutProps {
   onShare: () => void
   onHoursClick: () => void
   onAddToCart: (product: Product, quantity: number, variants: any[], options: any) => void
-  onUpdateQuantity: (productId: string, quantity: number, variants: any[], options: any) => void
-  onRemoveFromCart: (productId: string, variants: any[], options: any) => void
+  onUpdateQuantity: (productId: string, quantity: number, selectedVariants?: any[], selectedOptions?: any) => void
+  onRemoveFromCart: (productId: string, selectedVariants?: any[], selectedOptions?: any) => void
   cart: CartItem[]
   onCheckout: () => void
   onOrderComplete: (orderData: any) => void
