@@ -6,7 +6,7 @@ import { MobileCategoryFilter } from './mobile-category-filter'
 import { MobileProductCard } from './mobile-product-card'
 import { MobileCartFab } from './mobile-cart-fab'
 import { ShoppingCartSidebar } from './shopping-cart'
-import { SingleCardCheckout } from '@/components/checkout/single-card-checkout'
+import SingleCardCheckout from '@/components/checkout/single-card-checkout'
 import { InstallPrompt } from '@/components/pwa/install-prompt'
 import { ServiceWorkerRegister } from '@/components/pwa/service-worker-register'
 
