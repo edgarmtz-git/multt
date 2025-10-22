@@ -81,7 +81,7 @@ export class LocalStorageProvider implements StorageProvider {
     }
   }
 
-  getUrl(key: string): string {
+  getPublicUrl(key: string): string {
     return `${this.publicUrl}/uploads/${key}`
   }
 }

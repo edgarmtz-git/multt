@@ -100,7 +100,7 @@ export class S3StorageProvider implements StorageProvider {
     }
   }
 
-  getUrl(key: string): string {
+  getPublicUrl(key: string): string {
     return this.publicUrl
       ? `${this.publicUrl}/${key}`
       : this.endpoint

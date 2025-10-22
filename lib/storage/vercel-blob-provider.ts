@@ -43,7 +43,7 @@ export class VercelBlobProvider implements StorageProvider {
     }
   }
 
-  getUrl(key: string): string {
+  getPublicUrl(key: string): string {
     // Vercel Blob URLs son directas
     return key
   }

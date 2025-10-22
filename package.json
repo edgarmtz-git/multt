@@ -12,7 +12,9 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "verify:production": "tsx scripts/verify-production-config.ts"
+    "verify:production": "tsx scripts/verify-production-config.ts",
+    "storage:validate": "tsx scripts/validate-storage-config.ts",
+    "storage:migrate": "tsx scripts/migrate-storage.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
