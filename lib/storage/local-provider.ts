@@ -4,9 +4,9 @@
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
-import type { StorageProvider, UploadResult } from './types'
+import type { StorageAdapter, UploadResult } from './types'
 
-export class LocalStorageProvider implements StorageProvider {
+export class LocalStorageProvider implements StorageAdapter {
   private uploadDir: string
   private publicUrl: string
 

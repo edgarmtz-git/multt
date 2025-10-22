@@ -1,9 +1,9 @@
 // Provider VERCEL BLOB - Para hosting en Vercel
 // Requiere: pnpm add @vercel/blob
 
-import type { StorageProvider, UploadResult } from './types'
+import type { StorageAdapter, UploadResult } from './types'
 
-export class VercelBlobProvider implements StorageProvider {
+export class VercelBlobProvider implements StorageAdapter {
   async upload(file: File, customPath?: string): Promise<UploadResult> {
     try {
       // Lazy import para no romper si @vercel/blob no está instalado

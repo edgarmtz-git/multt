@@ -1,9 +1,9 @@
 // Provider S3-COMPATIBLE - Para AWS S3, MinIO, DigitalOcean Spaces, etc.
 // Requiere: pnpm add @aws-sdk/client-s3
 
-import type { StorageProvider, UploadResult } from './types'
+import type { StorageAdapter, UploadResult } from './types'
 
-export class S3StorageProvider implements StorageProvider {
+export class S3StorageProvider implements StorageAdapter {
   private bucket: string
   private region: string
   private endpoint?: string
