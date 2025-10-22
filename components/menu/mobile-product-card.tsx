@@ -217,7 +217,13 @@ export function MobileProductCard({
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onAddToCart={(product, quantity, variants, options) => {
-          onAddToCart(product, quantity, variants, options)
+          onAddToCart({
+            ...product,
+            category: product.category ? {
+              id: product.category.id || '',
+              name: product.category.name
+            } : undefined
+          }, quantity, variants, options)
           setShowModal(false)
         }}
       />
