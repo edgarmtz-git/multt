@@ -210,7 +210,10 @@ export function MobileProductCard({
 
       {/* Modal del producto */}
       <ProductModal
-        product={product}
+        product={{
+          ...product,
+          category: product.category || { name: 'Sin categoría' }
+        }}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onAddToCart={(product, quantity, variants, options) => {
