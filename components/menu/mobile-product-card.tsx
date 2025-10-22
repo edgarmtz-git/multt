@@ -220,7 +220,7 @@ export function MobileProductCard({
           onAddToCart({
             ...product,
             category: product.category ? {
-              id: product.category.id || '',
+              id: '',
               name: product.category.name
             } : undefined
           }, quantity, variants, options)
