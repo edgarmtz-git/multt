@@ -147,7 +147,149 @@
 
 /* Utilidades para safe area */
 .safe-area-inset-bottom {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Modal móvil optimizado - CSS específico para evitar conflictos */
+.mobile-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.mobile-modal-content {
+  position: relative !important;
+  background-color: white !important;
+  width: 100% !important;
+  max-width: 28rem !important;
+  margin: 0 1rem !important;
+  border-radius: 1.5rem 1.5rem 0 0 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  max-height: 85vh !important;
+  overflow: hidden !important;
+  z-index: 10000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Animaciones suaves para el modal */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.mobile-modal-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+.mobile-modal-exit {
+  animation: slideDown 0.3s ease-in;
+}
+
+/* Mejorar la visibilidad en pantallas pequeñas */
+@media (max-width: 640px) {
+  .mobile-modal-content {
+    margin: 0 0.5rem;
+    max-height: 90vh;
+  }
+}
+
+/* Asegurar que el contenido sea scrolleable */
+.mobile-modal-scroll {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+/* Prevenir scroll del body cuando el modal está abierto */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Mejorar el handle visual */
+.mobile-modal-handle {
+  width: 3rem !important;
+  height: 0.375rem !important;
+  background-color: #d1d5db !important;
+  border-radius: 9999px !important;
+  margin: 0.75rem auto 0.5rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Asegurar que los elementos del modal sean visibles */
+.mobile-modal h2 {
+  color: #111827 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+
+.mobile-modal button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  transition: colors 0.2s !important;
+  cursor: pointer !important;
+}
+
+.mobile-modal .flex {
+  display: flex !important;
+}
+
+.mobile-modal .items-center {
+  align-items: center !important;
+}
+
+.mobile-modal .justify-between {
+  justify-content: space-between !important;
+}
+
+.mobile-modal .px-6 {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+.mobile-modal .py-4 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.mobile-modal .border-b {
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
 .safe-area-inset-top {

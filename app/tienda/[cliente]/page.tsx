@@ -139,13 +139,13 @@ export default function CustomerMenuPage() {
   // Bloquear scroll del body cuando hay modales abiertos
   useEffect(() => {
     if (showCheckout || showProductModal || showMapModal || showHoursModal || completedOrder) {
-      document.body.style.overflow = 'hidden'
+      document.body.classList.add('modal-open')
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.classList.remove('modal-open')
     }
 
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.classList.remove('modal-open')
     }
   }, [showCheckout, showProductModal, showMapModal, showHoursModal, completedOrder])
 
@@ -726,7 +726,7 @@ export default function CustomerMenuPage() {
                           
                           {/* Botón agregar en esquina inferior derecha */}
                           <Button
-                            className="bg-black hover:bg-gray-800 text-white rounded-full px-4 py-2 text-sm font-medium min-h-[36px] min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-black hover:bg-gray-800 text-white rounded-full px-4 py-3 text-sm font-medium min-h-[44px] min-w-[90px] disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!isOpen}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -837,17 +837,29 @@ export default function CustomerMenuPage() {
 
       {/* Modal de Horarios */}
       {showHoursModal && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
-          <div className="bg-white w-full h-screen md:h-auto md:rounded-lg md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end md:items-center justify-center"
+          onClick={() => setShowHoursModal(false)}
+        >
+          <div 
+            className="bg-white w-full h-[85vh] md:h-auto md:max-h-[80vh] md:max-w-2xl md:rounded-xl shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header fijo */}
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-white">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Horarios de Atención</h2>
-                <Button variant="ghost" onClick={() => setShowHoursModal(false)}>
-                  ✕
-                </Button>
+                <h2 className="text-2xl font-bold text-gray-900">Horarios de Atención</h2>
+                <button
+                  onClick={() => setShowHoursModal(false)}
+                  className="h-10 w-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+                >
+                  <span className="text-xl font-bold text-gray-600">✕</span>
+                </button>
               </div>
             </div>
-            <div className="p-4">
+            
+            {/* Contenido scrolleable */}
+            <div className="flex-1 overflow-y-auto p-6">
               {storeInfo?.unifiedSchedule ? (
                 <div className="space-y-3">
                   {(() => {
@@ -895,18 +907,51 @@ export default function CustomerMenuPage() {
                       })
                     }
                     
-                    // Manejar formato legacy si existe
-                    return Object.entries(schedule).map(([day, daySchedule]: [string, any]) => {
-                      const dayName = day.charAt(0).toUpperCase() + day.slice(1)
-                      const isToday = new Date().toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase() === day
+                    // Manejar el formato directo de días con slots
+                    const dayNames = [
+                      'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+                    ]
+                    
+                    const dayKeys = [
+                      'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
+                    ]
+                    
+                    const currentDay = new Date().getDay()
+                    
+                    return dayKeys.map((dayKey, index) => {
+                      const daySchedule = schedule[dayKey]
+                      const isToday = index === currentDay
+                      
+                      let timeDisplay = 'Cerrado'
+                      if (daySchedule?.isAvailable && daySchedule.slots && daySchedule.slots.length > 0) {
+                        timeDisplay = daySchedule.slots.join(', ')
+                      }
                       
                       return (
-                        <div key={day} className={`flex justify-between items-center p-2 rounded ${isToday ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
-                          <span className={`font-medium ${isToday ? 'text-blue-700' : 'text-gray-700'}`}>
-                            {dayName} {isToday && '(Hoy)'}
-                          </span>
-                          <span className={`text-sm ${isToday ? 'text-blue-600' : 'text-gray-600'}`}>
-                            {daySchedule.enabled ? `${daySchedule.openTime} - ${daySchedule.closeTime}` : 'Cerrado'}
+                        <div 
+                          key={dayKey} 
+                          className={`flex justify-between items-center p-4 rounded-xl border-2 ${
+                            isToday 
+                              ? 'bg-blue-50 border-blue-300 shadow-sm' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold text-lg ${
+                              isToday ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
+                              {dayNames[index]}
+                            </span>
+                            {isToday && (
+                              <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
+                                Hoy
+                              </span>
+                            )}
+                          </div>
+                          <span className={`text-base font-medium ${
+                            isToday ? 'text-blue-600' : 'text-gray-600'
+                          }`}>
+                            {timeDisplay}
                           </span>
                         </div>
                       )
@@ -915,11 +960,30 @@ export default function CustomerMenuPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Timer className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-2">Horarios no configurados</p>
-                  <p className="text-sm text-gray-400">Contacta al restaurante para conocer sus horarios</p>
+                  <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 text-lg">
+                    {storeInfo?.enableBusinessHours 
+                      ? 'Horarios no configurados'
+                      : 'Horarios de atención no habilitados'
+                    }
+                  </p>
+                  {!storeInfo?.enableBusinessHours && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      El restaurante está abierto 24/7
+                    </p>
+                  )}
                 </div>
               )}
+            </div>
+            
+            {/* Footer fijo */}
+            <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setShowHoursModal(false)}
+                className="w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
@@ -935,8 +999,7 @@ export default function CustomerMenuPage() {
       {showCheckout && storeInfo && (() => {
         const totals = calculateCartTotals()
         return (
-          <div className="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
-              <SingleCardCheckout
+          <SingleCardCheckout
                 storeSlug={storeInfo.storeSlug}
                 cartItems={cart.map(item => {
                   // Obtener el nombre de la variante seleccionada
@@ -979,7 +1042,6 @@ export default function CustomerMenuPage() {
                 onOrderComplete={handleOrderComplete}
                 onClose={() => setShowCheckout(false)}
               />
-          </div>
         )
       })()}
 

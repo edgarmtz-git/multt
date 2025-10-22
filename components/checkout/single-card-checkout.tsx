@@ -165,6 +165,15 @@ export default function SingleCardCheckout({
   // Estados de UI
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    document.body.classList.add('modal-open')
+    
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [])
+
   // Cargar información de la tienda y zonas
   useEffect(() => {
     const fetchStoreInfo = async () => {
@@ -421,19 +430,33 @@ export default function SingleCardCheckout({
   }
 
   return (
-      <Card className="w-full h-screen md:h-auto md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[90vh] overflow-hidden flex flex-col md:rounded-lg">
-        <CardHeader className="flex flex-row items-center justify-between flex-shrink-0">
-          <CardTitle className="text-2xl font-bold">Finalizar Pedido</CardTitle>
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </CardHeader>
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end md:items-center justify-center"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white w-full h-[85vh] md:h-auto md:max-h-[80vh] md:max-w-4xl md:rounded-xl shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header fijo */}
+        <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Finalizar Pedido</h2>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="h-10 w-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+              >
+                <span className="text-xl font-bold text-gray-600">✕</span>
+              </button>
+            )}
+          </div>
+        </div>
         
-        <CardContent className="space-y-6 overflow-y-auto flex-1 pb-6">
+        {/* Contenido scrolleable */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Información del Cliente */}
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <User className="h-5 w-5" />
               Información del Cliente
@@ -475,7 +498,7 @@ export default function SingleCardCheckout({
           </div>
 
           {/* Método de Entrega */}
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Store className="h-5 w-5" />
               Método de Entrega
@@ -484,25 +507,24 @@ export default function SingleCardCheckout({
             <div className="space-y-2">
               <Label htmlFor="delivery-method">Selecciona el método de entrega *</Label>
               <Select value={deliveryMethod} onValueChange={(value: 'pickup' | 'delivery') => setDeliveryMethod(value)}>
-                <SelectTrigger className="w-full h-12 text-base">
+                <SelectTrigger className="w-full h-16 text-base">
                   <SelectValue placeholder="Elige cómo quieres recibir tu pedido" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="pickup" className="h-auto py-3">
+                <SelectContent>
+                  <SelectItem value="pickup">
                     <div className="flex items-center gap-3">
-                      <Store className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
+                      <Store className="h-5 w-5 text-blue-500" />
+                      <div>
                         <p className="font-medium">Recoger en local</p>
                         <p className="text-sm text-gray-600">Sin costo de envío</p>
                       </div>
                     </div>
                   </SelectItem>
-                  {/* Solo mostrar opción de delivery si está habilitado en la tienda */}
                   {storeInfo?.deliveryEnabled && (
-                    <SelectItem value="delivery" className="h-auto py-3">
+                    <SelectItem value="delivery">
                       <div className="flex items-center gap-3">
-                        <Home className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
+                        <Home className="h-5 w-5 text-green-500" />
+                        <div>
                           <p className="font-medium">Entrega a domicilio</p>
                           <p className="text-sm text-gray-600">
                             {deliveryCalculation && calculatedDeliveryFee > 0 ? (
@@ -547,7 +569,7 @@ export default function SingleCardCheckout({
           )}
 
           {/* Método de Pago */}
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
               Método de Pago
@@ -686,7 +708,7 @@ export default function SingleCardCheckout({
           </div>
 
           {/* Observaciones */}
-          <div className="space-y-2">
+          <div className="space-y-2 mb-8">
             <Label htmlFor="observations" className="text-sm font-medium">Observaciones adicionales</Label>
             <Textarea
               id="observations"
@@ -698,7 +720,7 @@ export default function SingleCardCheckout({
           </div>
 
           {/* Resumen del Pedido */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg mb-8">
             <h3 className="text-lg font-semibold">Resumen del Pedido</h3>
             
             {/* Información del método de envío */}
@@ -792,25 +814,29 @@ export default function SingleCardCheckout({
             </div>
           </div>
 
-          {/* Botón de Envío */}
+        </div>
+        
+        {/* Footer fijo */}
+        <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-gray-50">
           <Button
             onClick={handleSubmitOrder}
             disabled={isLoading || !customerName.trim() || !validateWhatsApp(customerWhatsApp)}
-            className="w-full h-12 text-base font-medium"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg font-bold text-lg h-14"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                 Enviando...
               </>
             ) : (
               <>
-                <Smartphone className="h-4 w-4 mr-2" />
+                <Smartphone className="h-5 w-5 mr-2" />
                 Enviar por WhatsApp
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    </div>
   )
 }

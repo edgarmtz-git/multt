@@ -199,7 +199,7 @@ export function MobileProductCard({
           ) : (
             <Button
               onClick={handleAddToCart}
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex items-center justify-center gap-2"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
               Agregar al carrito

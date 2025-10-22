@@ -119,18 +119,34 @@ export default function MobileCustomerMenuPage() {
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
         const todaySchedule = schedule[dayNames[currentDay]]
 
-        if (todaySchedule && todaySchedule.isOpen) {
-          const openTime = parseInt(todaySchedule.openTime.replace(':', ''))
-          const closeTime = parseInt(todaySchedule.closeTime.replace(':', ''))
-          
-          return currentTime >= openTime && currentTime <= closeTime
+        if (todaySchedule && todaySchedule.isAvailable) {
+          // Manejar formato de slots (ej: ['13:00-15:00', '19:00-22:00'])
+          if (todaySchedule.slots && Array.isArray(todaySchedule.slots)) {
+            for (const slot of todaySchedule.slots) {
+              const [openTimeStr, closeTimeStr] = slot.split('-')
+              const openTime = parseInt(openTimeStr.replace(':', ''))
+              const closeTime = parseInt(closeTimeStr.replace(':', ''))
+              
+              if (currentTime >= openTime && currentTime <= closeTime) {
+                return true
+              }
+            }
+          }
+          // Manejar formato tradicional (openTime/closeTime)
+          else if (todaySchedule.openTime && todaySchedule.closeTime) {
+            const openTime = parseInt(todaySchedule.openTime.replace(':', ''))
+            const closeTime = parseInt(todaySchedule.closeTime.replace(':', ''))
+            
+            return currentTime >= openTime && currentTime <= closeTime
+          }
         }
       } catch (error) {
         console.error('Error parsing schedule:', error)
       }
     }
 
-    return true // Por defecto, asumir abierto
+    // Si no hay horarios configurados pero están habilitados, asumir cerrado
+    return false
   }
 
   const loadStoreData = async () => {

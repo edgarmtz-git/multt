@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { SimpleMobileHours } from './simple-mobile-hours'
 
 interface StoreInfo {
   id: string
@@ -58,6 +59,7 @@ export function MobileMenuHeader({
   onHoursClick
 }: MobileMenuHeaderProps) {
   const [showFullAddress, setShowFullAddress] = useState(false)
+  const [showHoursModal, setShowHoursModal] = useState(false)
 
   return (
     <div className="relative bg-white">
@@ -83,14 +85,14 @@ export function MobileMenuHeader({
           {/* Estado del restaurante */}
           <Badge 
             variant={isOpen ? "default" : "destructive"}
-            className={`px-3 py-1.5 text-xs font-medium shadow-lg ${
+            className={`px-4 py-2 text-sm font-semibold shadow-lg ${
               isOpen 
                 ? 'bg-green-500 hover:bg-green-600 text-white' 
                 : 'bg-red-500 hover:bg-red-600 text-white'
             }`}
           >
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
               <span>{isOpen ? 'Abierto' : 'Cerrado'}</span>
             </div>
           </Badge>
@@ -99,10 +101,10 @@ export function MobileMenuHeader({
           <Button
             variant="secondary"
             size="sm"
-            onClick={onHoursClick}
-            className="px-3 py-1.5 h-auto bg-white/95 hover:bg-white shadow-lg text-gray-700 text-xs font-medium"
+            onClick={() => setShowHoursModal(true)}
+            className="px-4 py-2 h-auto bg-white/95 hover:bg-white shadow-lg text-gray-700 text-sm font-semibold"
           >
-            <Timer className="w-3 h-3 mr-1" />
+            <Timer className="w-4 h-4 mr-1.5" />
             Horario
           </Button>
         </div>
@@ -128,7 +130,7 @@ export function MobileMenuHeader({
       {/* Información de la tienda - Mejor espaciado */}
       <div className="pt-10 pb-6 px-4 sm:px-6">
         {/* Nombre de la tienda */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-3">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-3">
           {storeInfo.storeName}
         </h1>
         
@@ -156,14 +158,14 @@ export function MobileMenuHeader({
         </div>
         
         {/* Botones de acción - Optimizados para móvil */}
-        <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
           <Button
             variant="outline"
             size="sm"
             onClick={onCall}
-            className="flex-1 min-w-[120px] h-10 text-sm font-medium"
+            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
           >
-            <Phone className="w-4 h-4 mr-2" />
+            <Phone className="w-5 h-5 mr-2" />
             Llamar
           </Button>
           
@@ -171,9 +173,9 @@ export function MobileMenuHeader({
             variant="outline"
             size="sm"
             onClick={onWhatsApp}
-            className="flex-1 min-w-[120px] h-10 text-sm font-medium"
+            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
           >
-            <MessageCircle className="w-4 h-4 mr-2" />
+            <MessageCircle className="w-5 h-5 mr-2" />
             WhatsApp
           </Button>
           
@@ -181,9 +183,9 @@ export function MobileMenuHeader({
             variant="outline"
             size="sm"
             onClick={onShare}
-            className="flex-1 min-w-[120px] h-10 text-sm font-medium"
+            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
           >
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="w-5 h-5 mr-2" />
             Compartir
           </Button>
         </div>
@@ -197,6 +199,14 @@ export function MobileMenuHeader({
           </div>
         )}
       </div>
+
+      {/* Modal de horarios simplificado para móvil */}
+      <SimpleMobileHours
+        isOpen={showHoursModal}
+        onClose={() => setShowHoursModal(false)}
+        storeInfo={storeInfo}
+        isOpenNow={isOpen}
+      />
     </div>
   )
 }

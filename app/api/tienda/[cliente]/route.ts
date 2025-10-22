@@ -36,6 +36,7 @@ export async function GET(
         advanceDays: true,
         serviceHours: true,
         unifiedSchedule: true,
+        enableBusinessHours: true,
         storeActive: true,
         passwordProtected: true,
         accessPassword: true,
@@ -99,7 +100,9 @@ export async function GET(
       id: storeSettings.id,
       storeName: storeSettings.storeName,
       bannerImage: storeSettings.bannerImage,
-      profileImage: storeSettings.profileImage
+      profileImage: storeSettings.profileImage,
+      enableBusinessHours: storeSettings.enableBusinessHours,
+      unifiedSchedule: storeSettings.unifiedSchedule
     })
 
     // Parsear campos JSON
@@ -121,8 +124,14 @@ export async function GET(
       })() : {},
       unifiedSchedule: storeSettings.unifiedSchedule ? (() => {
         try {
+          // Si ya es un objeto, devolverlo directamente
+          if (typeof storeSettings.unifiedSchedule === 'object') {
+            return storeSettings.unifiedSchedule
+          }
+          // Si es string, parsearlo
           return JSON.parse(storeSettings.unifiedSchedule as string)
-        } catch {
+        } catch (error) {
+          console.error('Error parsing unifiedSchedule:', error)
           return {}
         }
       })() : {}
@@ -131,6 +140,12 @@ export async function GET(
     console.log('🔍 Store images:', {
       bannerImage: storeSettings.bannerImage,
       profileImage: storeSettings.profileImage
+    })
+
+    console.log('🔍 Parsed store info:', {
+      enableBusinessHours: parsedStoreInfo.enableBusinessHours,
+      unifiedSchedule: parsedStoreInfo.unifiedSchedule,
+      serviceHours: parsedStoreInfo.serviceHours
     })
 
     return NextResponse.json(parsedStoreInfo)
