@@ -1,7 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalDescription,
+} from "@/components/ui/responsive-modal"
 import { ProductForm } from "@/components/forms/product-form"
 import { toast } from "sonner"
 
@@ -47,18 +53,18 @@ export function ProductFormModal({ isOpen, onClose, onProductCreated }: ProductF
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Crear Nuevo Producto</DialogTitle>
-          <DialogDescription>
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto" fullScreenOnMobile={true}>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Crear Nuevo Producto</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
             Agrega un nuevo producto a tu menú digital. Puedes configurar variantes como tamaños, colores, sabores, etc.
-          </DialogDescription>
-        </DialogHeader>
-        
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
+
         <ProductForm />
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }
 

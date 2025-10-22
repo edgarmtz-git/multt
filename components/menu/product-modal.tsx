@@ -7,10 +7,15 @@ import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { 
-  X, 
-  Plus, 
-  Minus, 
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+} from '@/components/ui/responsive-modal'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import {
+  X,
+  Plus,
+  Minus,
   Star,
   Clock,
   Shield,
@@ -67,6 +72,7 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
   const [quantity, setQuantity] = useState(1)
   const [selectedVariants, setSelectedVariants] = useState<ProductVariant[]>([])
   const [selectedOptions, setSelectedOptions] = useState<{ [optionId: string]: ProductOptionChoice[] }>({})
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
   // Preseleccionar la variante más pequeña/barata automáticamente
   React.useEffect(() => {
@@ -76,8 +82,6 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
       setSelectedVariants([sortedVariants[0]])
     }
   }, [product.variants])
-
-  if (!isOpen) return null
 
   const calculateTotalPrice = () => {
     // Si hay variantes seleccionadas, usar el precio de la variante como base
@@ -163,10 +167,14 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
-      <div className="bg-white w-full h-screen md:h-auto md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:max-h-[90vh] md:rounded-lg overflow-hidden flex flex-col shadow-2xl">
-        {/* Content scrolleable - incluye imagen y toda la información */}
-        <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth pb-safe">
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent
+        fullScreenOnMobile={true}
+        className={isDesktop ? "max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh]" : ""}
+      >
+        <div className="flex flex-col h-full max-h-[90vh] md:max-h-none">
+          {/* Content scrolleable - incluye imagen y toda la información */}
+          <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
           {/* Header con imagen grande */}
           <div className="relative">
             {product.imageUrl ? (
@@ -612,17 +620,18 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
           </div>
         </div>
 
-        {/* Footer fijo - solo botón de agregar */}
-        <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0">
-          <Button
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 sm:py-3 rounded-lg font-bold text-base sm:text-lg min-h-[56px]"
-            onClick={handleAddToCart}
-            disabled={isAddToCartDisabled()}
-          >
-            Agregar al carrito - ${calculateTotalPrice().toFixed(2)}
-          </Button>
+          {/* Footer fijo - solo botón de agregar */}
+          <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0 safe-area-inset-bottom">
+            <Button
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 sm:py-3 rounded-lg font-bold text-base sm:text-lg min-h-[56px]"
+              onClick={handleAddToCart}
+              disabled={isAddToCartDisabled()}
+            >
+              Agregar al carrito - ${calculateTotalPrice().toFixed(2)}
+            </Button>
+          </div>
         </div>
-      </div>
-    </div>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   )
 }

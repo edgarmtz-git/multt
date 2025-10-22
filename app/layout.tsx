@@ -26,7 +26,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#2563eb'
+  themeColor: '#2563eb',
+  viewportFit: 'cover', // Permite que el contenido se extienda a las áreas seguras (notch)
 }
 
 export default function RootLayout({

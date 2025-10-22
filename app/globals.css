@@ -119,22 +119,43 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Forzar modo claro */
   html {
     color-scheme: light;
   }
-  
+
   body.light {
     background-color: #f9fafb !important;
     color: #111827 !important;
   }
-  
+
   /* Asegurar que no se aplique modo oscuro */
   .dark body {
     background-color: #f9fafb !important;
     color: #111827 !important;
   }
+
+  /* Safe Area Insets para dispositivos con notch (iOS/Android modernos) */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+    }
+  }
+}
+
+/* Utilidades para safe area */
+.safe-area-inset-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-inset-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .emoji-picker-container .epr-body::-webkit-scrollbar {
