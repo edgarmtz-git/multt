@@ -151,13 +151,20 @@ export default function SingleCardCheckout({
   const [cashAmount, setCashAmount] = useState('')
   const [change, setChange] = useState(0)
 
-  // ✅ IMPORTANTE: Si deliveryEnabled = false, forzar pickup
+  // ✅ IMPORTANTE: Configurar método de entrega según settings de la tienda
   useEffect(() => {
-    if (storeInfo && !storeInfo.deliveryEnabled && deliveryMethod === 'delivery') {
-      setDeliveryMethod('pickup')
-      toast.info('Esta tienda solo ofrece recoger en local')
+    if (storeInfo) {
+      // Si deliveryEnabled = false, forzar pickup
+      if (!storeInfo.deliveryEnabled && deliveryMethod === 'delivery') {
+        setDeliveryMethod('pickup')
+        toast.info('Esta tienda solo ofrece recoger en local')
+      }
+      // Si deliveryEnabled = true, seleccionar delivery automáticamente (solo la primera vez)
+      else if (storeInfo.deliveryEnabled && deliveryMethod === 'pickup') {
+        setDeliveryMethod('delivery')
+      }
     }
-  }, [storeInfo, deliveryMethod])
+  }, [storeInfo])
 
   // Observaciones
   const [observations, setObservations] = useState('')
