@@ -130,7 +130,7 @@ export function MobileMenuHeader({
       {/* Información de la tienda - Mejor espaciado */}
       <div className="pt-10 pb-6 px-4 sm:px-6">
         {/* Nombre de la tienda */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-3">
+        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 text-center mb-3">
           {storeInfo.storeName}
         </h1>
         

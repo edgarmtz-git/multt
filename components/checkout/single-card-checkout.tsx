@@ -510,30 +510,30 @@ export default function SingleCardCheckout({
               <Store className="h-5 w-5" />
               Método de Entrega
             </h3>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="delivery-method">Selecciona el método de entrega *</Label>
+              <Label htmlFor="delivery-method" className="text-sm font-medium">Selecciona el método de entrega *</Label>
               <Select value={deliveryMethod} onValueChange={(value: 'pickup' | 'delivery') => setDeliveryMethod(value)}>
-                <SelectTrigger className="w-full h-16 text-base">
+                <SelectTrigger className="w-full h-12 text-base">
                   <SelectValue placeholder="Elige cómo quieres recibir tu pedido" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pickup">
-                    <div className="flex items-center gap-3">
-                      <Store className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <p className="font-medium">Recoger en local</p>
-                        <p className="text-sm text-gray-600">Sin costo de envío</p>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="pickup" className="cursor-pointer py-3">
+                    <div className="flex items-center gap-3 py-1">
+                      <Store className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                      <div className="flex flex-col">
+                        <p className="font-medium text-sm">Recoger en local</p>
+                        <p className="text-xs text-gray-600">Sin costo de envío</p>
                       </div>
                     </div>
                   </SelectItem>
                   {storeInfo?.deliveryEnabled && (
-                    <SelectItem value="delivery">
-                      <div className="flex items-center gap-3">
-                        <Home className="h-5 w-5 text-green-500" />
-                        <div>
-                          <p className="font-medium">Entrega a domicilio</p>
-                          <p className="text-sm text-gray-600">
+                    <SelectItem value="delivery" className="cursor-pointer py-3">
+                      <div className="flex items-center gap-3 py-1">
+                        <Home className="h-5 w-5 text-green-500 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <p className="font-medium text-sm">Entrega a domicilio</p>
+                          <p className="text-xs text-gray-600">
                             {deliveryCalculation && calculatedDeliveryFee > 0 ? (
                               `+$${calculatedDeliveryFee.toFixed(2)} de envío`
                             ) : (
