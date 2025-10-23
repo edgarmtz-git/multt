@@ -639,7 +639,7 @@ export function ProductForm({
       const formData = new FormData()
       formData.append('image', file)
 
-      const response = await fetch('/api/dashboard/upload-image', {
+      const response = await fetch('/api/dashboard/upload-product-image', {
         method: 'POST',
         body: formData,
       })
@@ -649,7 +649,7 @@ export function ProductForm({
       }
 
       const data = await response.json()
-      
+
       // Actualizar la variante con la nueva imagen
       updateVariant(variantIndex, 'imageUrl', data.imageUrl)
       toast.success('Imagen subida correctamente')
