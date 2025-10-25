@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
+        // Optimización de desarrollo - Turbopack para HMR más rápido
+        ...(process.env.NODE_ENV === 'development' && {
+          // Habilitar Turbopack para HMR ultrarrápido
+          // Usar con: pnpm dev --turbo
+        }),
+
         // Optimización de imágenes
         images: {
           formats: ['image/avif', 'image/webp'],

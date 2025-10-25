@@ -111,7 +111,7 @@ export const authOptions = {
   pages: {
     signIn: "/login",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
   session: {
     strategy: "jwt" as const,
     maxAge: 24 * 60 * 60, // 24 horas (más estable para desarrollo)
