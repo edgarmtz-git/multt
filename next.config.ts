@@ -27,14 +27,6 @@ const nextConfig: NextConfig = {
           ],
           dangerouslyAllowSVG: true,
           contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-          // Configuración de calidad
-          quality: 85,
-          // Configuración de carga
-          loader: 'default',
-          // Configuración de placeholder
-          placeholder: 'blur',
-          // Configuración de lazy loading
-          unoptimized: false,
         },
 
   // Compresión
@@ -97,8 +89,7 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  // Optimización de builds
-  swcMinify: true,
+        // Optimización de builds (removido - ya no es necesario en Next.js 15)
   
   // Configuración de webpack
   webpack: (config, { isServer }) => {
@@ -113,19 +104,18 @@ const nextConfig: NextConfig = {
     return config
   },
 
-  // Experimental features
-  experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
+        // Experimental features
+        experimental: {
+          optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+          turbo: {
+            rules: {
+              '*.svg': {
+                loaders: ['@svgr/webpack'],
+                as: '*.js',
+              },
+            },
+          },
         },
-      },
-    },
-  },
 
   // Configuración de TypeScript
   typescript: {
