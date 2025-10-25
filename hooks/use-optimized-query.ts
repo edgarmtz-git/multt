@@ -124,11 +124,16 @@ export function useProducts(
   return useOptimizedQuery({
     queryKey: `products:${userId}:${JSON.stringify(options)}`,
     fetcher: async () => {
-      const response = await fetch(`/api/dashboard/products?${new URLSearchParams({
-        ...options,
+      const params: Record<string, string> = {
         limit: options.limit?.toString() || '50',
         offset: options.offset?.toString() || '0'
-      })}`)
+      }
+
+      if (options.isActive !== undefined) params.isActive = options.isActive.toString()
+      if (options.categoryId) params.categoryId = options.categoryId
+      if (options.search) params.search = options.search
+
+      const response = await fetch(`/api/dashboard/products?${new URLSearchParams(params)}`)
       if (!response.ok) throw new Error('Failed to fetch products')
       return response.json()
     },
@@ -151,11 +156,14 @@ export function useCategories(
   return useOptimizedQuery({
     queryKey: `categories:${userId}:${JSON.stringify(options)}`,
     fetcher: async () => {
-      const response = await fetch(`/api/dashboard/categories?${new URLSearchParams({
-        ...options,
+      const params: Record<string, string> = {
         limit: options.limit?.toString() || '50',
         offset: options.offset?.toString() || '0'
-      })}`)
+      }
+
+      if (options.isActive !== undefined) params.isActive = options.isActive.toString()
+
+      const response = await fetch(`/api/dashboard/categories?${new URLSearchParams(params)}`)
       if (!response.ok) throw new Error('Failed to fetch categories')
       return response.json()
     },
@@ -180,11 +188,16 @@ export function useOrders(
   return useOptimizedQuery({
     queryKey: `orders:${userId}:${JSON.stringify(options)}`,
     fetcher: async () => {
-      const response = await fetch(`/api/dashboard/orders?${new URLSearchParams({
-        ...options,
+      const params: Record<string, string> = {
         limit: options.limit?.toString() || '50',
         offset: options.offset?.toString() || '0'
-      })}`)
+      }
+
+      if (options.status) params.status = options.status
+      if (options.dateFrom) params.dateFrom = options.dateFrom
+      if (options.dateTo) params.dateTo = options.dateTo
+
+      const response = await fetch(`/api/dashboard/orders?${new URLSearchParams(params)}`)
       if (!response.ok) throw new Error('Failed to fetch orders')
       return response.json()
     },
@@ -224,11 +237,15 @@ export function usePublicProducts(
   return useOptimizedQuery({
     queryKey: `public-products:${storeSlug}:${JSON.stringify(options)}`,
     fetcher: async () => {
-      const response = await fetch(`/api/store/${storeSlug}/products?${new URLSearchParams({
-        ...options,
+      const params: Record<string, string> = {
         limit: options.limit?.toString() || '50',
         offset: options.offset?.toString() || '0'
-      })}`)
+      }
+
+      if (options.categoryId) params.categoryId = options.categoryId
+      if (options.search) params.search = options.search
+
+      const response = await fetch(`/api/store/${storeSlug}/products?${new URLSearchParams(params)}`)
       if (!response.ok) throw new Error('Failed to fetch public products')
       return response.json()
     },

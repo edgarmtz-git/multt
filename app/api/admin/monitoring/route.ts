@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Error de prueba enviado' })
         
       default:
-        throw Errors.badRequest('Acción no válida')
+        throw Errors.invalidInput('Acción no válida')
     }
     
   } catch (error) {

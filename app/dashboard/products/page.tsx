@@ -445,8 +445,6 @@ export default function ProductsPage() {
                           src={product.imageUrl}
                           alt={product.name}
                           className="w-full h-full"
-                          width={48}
-                          height={48}
                         />
                       ) : (
                         <Package className="h-6 w-6 text-muted-foreground" />

@@ -21,10 +21,11 @@ async function getVercelBlobProvider() {
 
 async function getS3Provider() {
   try {
-    const { S3StorageProvider } = await import('./s3-provider')
+    // Dynamic import to avoid bundling S3 dependencies if not used
+    const { S3StorageProvider } = await import(/* webpackMode: "lazy" */ './s3-provider')
     return new S3StorageProvider()
   } catch (error) {
-    console.warn('S3 provider not available, falling back to local storage')
+    console.warn('S3 provider not available, falling back to local storage:', error)
     return await getLocalProvider()
   }
 }

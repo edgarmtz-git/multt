@@ -96,11 +96,11 @@ export default async function AvailabilityPage() {
   }
 
   return (
-    <DashboardLayout 
+    <DashboardLayout
       user={{
         name: session.user.name || "Usuario",
         email: session.user.email || "",
-        avatar: session.user.avatar,
+        avatar: session.user.avatar || undefined,
         company: storeSettings?.storeSlug
       }}
     >

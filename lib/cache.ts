@@ -57,9 +57,9 @@ export async function getCached<T>(
 
     // Intentar obtener del cache
     const cached = await redis.get(key)
-    if (cached) {
-      return { 
-        data: JSON.parse(cached), 
+    if (cached && typeof cached === 'string') {
+      return {
+        data: JSON.parse(cached),
         fromCache: true,
         ttl: await redis.ttl(key)
       }
@@ -158,18 +158,17 @@ export async function getCacheStats(): Promise<{
   misses: number
 }> {
   try {
-    const info = await redis.info('memory')
     const keys = await redis.dbsize()
-    
+
     return {
       keys,
-      memory: info.match(/used_memory_human:(\S+)/)?.[1] || '0B',
+      memory: 'N/A', // Upstash Redis no soporta info command
       hits: 0, // Implementar contadores si es necesario
       misses: 0
     }
   } catch (error) {
     console.error('Error getting cache stats:', error)
-    return { keys: 0, memory: '0B', hits: 0, misses: 0 }
+    return { keys: 0, memory: 'N/A', hits: 0, misses: 0 }
   }
 }
 

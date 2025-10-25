@@ -173,7 +173,7 @@ export function validateEmail(email: string): { isValid: boolean; message?: stri
     return { isValid: true }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { isValid: false, message: error.errors[0].message }
+      return { isValid: false, message: error.issues[0]?.message || 'Email inválido' }
     }
     return { isValid: false, message: 'Email inválido' }
   }
@@ -188,7 +188,7 @@ export function validateSlug(slug: string): { isValid: boolean; message?: string
     return { isValid: true }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { isValid: false, message: error.errors[0].message }
+      return { isValid: false, message: error.issues[0]?.message || 'Valor inválido' }
     }
     return { isValid: false, message: 'Slug inválido' }
   }
@@ -203,7 +203,7 @@ export function validateWhatsApp(whatsapp: string): { isValid: boolean; message?
     return { isValid: true }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { isValid: false, message: error.errors[0].message }
+      return { isValid: false, message: error.issues[0]?.message || 'Valor inválido' }
     }
     return { isValid: false, message: 'WhatsApp inválido' }
   }

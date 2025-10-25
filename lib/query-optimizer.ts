@@ -330,19 +330,17 @@ export async function getOptimizedPublicProducts(
         }
       },
       options: {
-        where: { isActive: true },
         select: {
           id: true,
           name: true,
-          required: true,
-          maxSelections: true,
+          isRequired: true,
+          type: true,
           choices: {
-            where: { isActive: true },
             select: {
               id: true,
               name: true,
               price: true,
-              isDefault: true
+              order: true
             }
           }
         }

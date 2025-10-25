@@ -81,8 +81,9 @@ export class MonitoringService {
    * Captura mensajes con contexto
    */
   captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context?: ErrorContext): void {
-    // Log estructurado
-    logger[level](message, context)
+    // Log estructurado - mapear 'warning' a 'warn'
+    const logLevel = level === 'warning' ? 'warn' : level
+    logger[logLevel](message, context)
 
     // Sentry
     Sentry.withScope((scope) => {
@@ -166,11 +167,11 @@ export class MonitoringService {
   /**
    * Inicia una transacción de rendimiento
    */
-  startTransaction(name: string, op: string = 'custom'): Sentry.Transaction {
-    return Sentry.startTransaction({
+  startTransaction(name: string, op: string = 'custom'): ReturnType<typeof Sentry.startInactiveSpan> {
+    return Sentry.startInactiveSpan({
       name,
       op,
-      tags: {
+      attributes: {
         environment: process.env.NODE_ENV
       }
     })
@@ -249,7 +250,7 @@ export function recordBusinessMetric(event: string, userId?: string, storeSlug?:
   })
 }
 
-export function startTransaction(name: string, op?: string): Sentry.Transaction {
+export function startTransaction(name: string, op?: string): ReturnType<typeof Sentry.startInactiveSpan> {
   return monitoring.startTransaction(name, op)
 }
 
@@ -283,7 +284,7 @@ export function withMonitoring<T extends Record<string, any>>(
       })
       throw error
     } finally {
-      transaction.finish()
+      transaction.end()
     }
   }
 }
@@ -307,7 +308,7 @@ export function monitorMethod(target: any, propertyName: string, descriptor: Pro
       })
       throw error
     } finally {
-      transaction.finish()
+      transaction.end()
     }
   }
 }
@@ -333,7 +334,7 @@ export function withApiMonitoring(handler: Function) {
       })
       throw error
     } finally {
-      transaction.finish()
+      transaction.end()
     }
   }
 }

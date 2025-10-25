@@ -101,6 +101,15 @@ const nextConfig: NextConfig = {
         tls: false,
       }
     }
+
+    // Ignore optional dependencies that may not be installed
+    config.externals = config.externals || []
+    if (Array.isArray(config.externals)) {
+      config.externals.push({
+        '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3'
+      })
+    }
+
     return config
   },
 
@@ -143,31 +152,12 @@ const nextConfig: NextConfig = {
 };
 
 // Configuración de Sentry
-const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry webpack plugin. Keep in mind that
-  // the following options are set automatically, and overriding them is not
-  // recommended:
-  //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
-
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-};
-
-const sentryOptions = {
+const sentryConfig = {
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-
-  // Transpiles SDK to be compatible with IE11 (increases bundle size)
-  transpileClientSDK: true,
 
   // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
   tunnelRoute: "/monitoring",
@@ -178,11 +168,15 @@ const sentryOptions = {
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
-  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-  // See the following for more information:
-  // https://docs.sentry.io/product/crons/
-  // https://vercel.com/docs/cron-jobs
+  // Enables automatic instrumentation of Vercel Cron Monitors.
   automaticVercelMonitors: true,
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Sentry organization and project
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
 };
 
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions);
+export default withSentryConfig(nextConfig, sentryConfig);
