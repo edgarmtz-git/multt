@@ -263,16 +263,19 @@ export function setStoreContext(storeSlug: string, storeName?: string): void {
 
 /**
  * HOC para monitoreo de componentes
+ * Nota: Este HOC requiere React y debe ser usado en componentes
  */
 export function withMonitoring<T extends Record<string, any>>(
-  Component: React.ComponentType<T>,
+  Component: any, // React.ComponentType<T>
   componentName: string
-): React.ComponentType<T> {
+): any { // React.ComponentType<T>
   return function MonitoredComponent(props: T) {
     const transaction = startTransaction(`component.${componentName}`)
     
     try {
-      return <Component {...props} />
+      // En un entorno real, esto sería JSX
+      // return <Component {...props} />
+      return Component(props)
     } catch (error) {
       captureError(error as Error, {
         action: `component.${componentName}`,

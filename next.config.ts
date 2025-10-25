@@ -107,12 +107,14 @@ const nextConfig: NextConfig = {
         // Experimental features
         experimental: {
           optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-          turbo: {
-            rules: {
-              '*.svg': {
-                loaders: ['@svgr/webpack'],
-                as: '*.js',
-              },
+        },
+
+        // Turbopack configuration (moved from experimental)
+        turbopack: {
+          rules: {
+            '*.svg': {
+              loaders: ['@svgr/webpack'],
+              as: '*.js',
             },
           },
         },
