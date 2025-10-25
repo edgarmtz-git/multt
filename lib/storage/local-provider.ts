@@ -15,7 +15,7 @@ export class LocalStorageProvider implements StorageAdapter {
     this.uploadDir = path.join(process.cwd(), 'public', 'uploads')
 
     // URL pública para acceder a los archivos
-    this.publicUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
+    this.publicUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     // Asegurar que el directorio existe
     this.ensureUploadDir()
