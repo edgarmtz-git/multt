@@ -49,3 +49,69 @@ verify-maria-deleted.js
 # app/test-*
 # public/test-*
 .env*.local
+
+# ============================================
+# 🔴 ARCHIVOS SENSIBLES (SEGURIDAD CRÍTICA)
+# ============================================
+
+# Bases de datos
+*.db
+*.db-*
+*.db.backup-*
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+/prisma/*.db*
+
+# Uploads de usuarios
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/*/.gitkeep
+/uploads/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# IDEs y editores
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backups
+*.bak
+*.backup
+*.tmp
+*.temp
+
+# Archivos de sesión
+.session
+sessions/
+
+# Certificados y claves
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# Datos sensibles
+credentials.json
+secrets.json
+service-account.json
