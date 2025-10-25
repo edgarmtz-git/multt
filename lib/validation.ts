@@ -1,115 +1,12 @@
 import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
+import { validators, userSchema as centralizedUserSchema, productSchema as centralizedProductSchema, orderSchema as centralizedOrderSchema, storeSettingsSchema as centralizedStoreSettingsSchema } from './validators'
 
-// Esquemas de validación para diferentes entidades
-export const userSchema = z.object({
-  email: z.string()
-    .email('Email inválido')
-    .min(5, 'Email muy corto')
-    .max(255, 'Email muy largo')
-    .toLowerCase()
-    .trim(),
-  password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(128, 'La contraseña es muy larga')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-      'La contraseña debe contener al menos: 1 minúscula, 1 mayúscula, 1 número y 1 carácter especial'),
-  name: z.string()
-    .min(2, 'El nombre debe tener al menos 2 caracteres')
-    .max(100, 'El nombre es muy largo')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios')
-    .trim(),
-  company: z.string()
-    .min(2, 'El nombre de la empresa debe tener al menos 2 caracteres')
-    .max(100, 'El nombre de la empresa es muy largo')
-    .regex(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]+$/, 'Caracteres no válidos en el nombre de la empresa')
-    .trim()
-    .optional()
-})
-
-export const productSchema = z.object({
-  name: z.string()
-    .min(1, 'El nombre del producto es requerido')
-    .max(200, 'El nombre del producto es muy largo')
-    .trim(),
-  description: z.string()
-    .max(2000, 'La descripción es muy larga')
-    .trim()
-    .optional(),
-  price: z.number()
-    .min(0, 'El precio no puede ser negativo')
-    .max(999999.99, 'El precio es muy alto')
-    .multipleOf(0.01, 'El precio debe tener máximo 2 decimales'),
-  isActive: z.boolean().optional(),
-  categoryId: z.string().cuid('ID de categoría inválido').optional()
-})
-
-export const orderSchema = z.object({
-  customerName: z.string()
-    .min(2, 'El nombre del cliente debe tener al menos 2 caracteres')
-    .max(100, 'El nombre del cliente es muy largo')
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'No se pueden poner números o caracteres especiales en el nombre')
-    .trim(),
-  customerWhatsApp: z.string()
-    .regex(/^[\d\s\-\+\(\)]{10,20}$/, 'Formato de WhatsApp inválido')
-    .transform((val: string) => val.replace(/\D/g, '')), // Limpiar caracteres no numéricos
-  customerEmail: z.string()
-    .email('Email inválido')
-    .optional(),
-  deliveryMethod: z.enum(['delivery', 'pickup'], {
-    message: 'Método de entrega inválido'
-  }),
-  paymentMethod: z.enum(['cash', 'transfer'], {
-    message: 'Método de pago inválido'
-  }),
-  address: z.object({
-    street: z.string().min(1, 'La calle es requerida').max(200, 'Calle muy larga').trim(),
-    number: z.string().min(1, 'El número es requerido').max(20, 'Número muy largo').trim(),
-    neighborhood: z.string().min(1, 'La colonia es requerida').max(100, 'Colonia muy larga').trim(),
-    reference: z.string().max(500, 'Referencias muy largas').trim().optional(),
-    houseType: z.enum(['casa', 'departamento', 'oficina', 'otro']).optional()
-  }).optional().nullable(),
-  items: z.array(z.object({
-    id: z.string().min(1, 'ID de producto requerido'),
-    name: z.string().min(1, 'Nombre de producto requerido'),
-    price: z.number().min(0, 'Precio inválido'),
-    quantity: z.number().int().min(1, 'Cantidad mínima: 1').max(100, 'Cantidad máxima: 100'),
-    variantName: z.string().optional(),
-    variantId: z.string().optional().nullable(),
-    options: z.array(z.object({
-      name: z.string(),
-      value: z.string()
-    })).optional()
-  })).min(1, 'Debe incluir al menos un producto'),
-  subtotal: z.number().min(0, 'Subtotal inválido'),
-  deliveryFee: z.number().min(0, 'Costo de envío inválido'),
-  total: z.number().min(0, 'Total inválido'),
-  observations: z.string().max(1000, 'Observaciones muy largas').trim().optional()
-})
-
-export const storeSettingsSchema = z.object({
-  storeName: z.string()
-    .min(2, 'El nombre de la tienda debe tener al menos 2 caracteres')
-    .max(100, 'El nombre de la tienda es muy largo')
-    .trim(),
-  storeSlug: z.string()
-    .min(2, 'El slug debe tener al menos 2 caracteres')
-    .max(50, 'El slug es muy largo')
-    .regex(/^[a-z0-9\-]+$/, 'El slug solo puede contener letras minúsculas, números y guiones')
-    .trim(),
-  whatsappMainNumber: z.string()
-    .regex(/^[\d\s\-\+\(\)]{10,20}$/, 'Formato de WhatsApp inválido')
-    .transform((val: string) => val.replace(/\D/g, ''))
-    .optional(),
-  phoneNumber: z.string()
-    .regex(/^\d{10}$/, 'El teléfono debe tener exactamente 10 dígitos')
-    .optional(),
-  address: z.string().max(500, 'Dirección muy larga').optional(),
-  deliveryCalculationMethod: z.enum(['distance', 'zones', 'manual']).optional(),
-  pricePerKm: z.number().min(0, 'Precio por km no puede ser negativo').max(1000, 'Precio por km muy alto').optional(),
-  maxDeliveryDistance: z.number().min(0, 'Distancia máxima no puede ser negativa').max(100, 'Distancia máxima muy alta').optional(),
-  manualDeliveryMessage: z.string().max(500, 'Mensaje muy largo').optional()
-})
+// Re-exportar esquemas centralizados
+export const userSchema = centralizedUserSchema
+export const productSchema = centralizedProductSchema  
+export const orderSchema = centralizedOrderSchema
+export const storeSettingsSchema = centralizedStoreSettingsSchema
 
 // Función para sanitizar HTML
 export function sanitizeHtml(html: string): string {
@@ -221,3 +118,6 @@ export function validateFile(file: File, options: {
   
   return { valid: true }
 }
+
+// Re-exportar validadores centralizados
+export { validators }

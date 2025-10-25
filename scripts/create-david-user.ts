@@ -30,7 +30,10 @@ async function createDavidUser() {
 
     // Paso 2: Crear usuario directamente (simulando aceptación de invitación)
     console.log('\n👤 Paso 2: Creando usuario...')
-    const hashedPassword = await bcrypt.hash('david123', 12)
+    const hashedPassword = await bcrypt.hash(
+      process.env.SEED_CLIENT_PASSWORD || 'david123', 
+      12
+    )
     
     const result = await prisma.$transaction(async (tx) => {
       // Crear el usuario
@@ -104,7 +107,7 @@ async function createDavidUser() {
     console.log(`   - Nombre: ${result.name}`)
     console.log(`   - Email: ${result.email}`)
     console.log(`   - Empresa: ${result.company}`)
-    console.log(`   - Contraseña: david123`)
+    console.log(`   - Contraseña: ${process.env.SEED_CLIENT_PASSWORD || 'david123'}`)
 
     // Paso 3: Verificar productos creados
     console.log('\n📦 Paso 3: Verificando productos...')
@@ -127,7 +130,7 @@ async function createDavidUser() {
     console.log('\n🎉 ¡Proceso completado exitosamente!')
     console.log('\n📋 Credenciales de David:')
     console.log(`   Email: ${result.email}`)
-    console.log(`   Contraseña: david123`)
+    console.log(`   Contraseña: ${process.env.SEED_CLIENT_PASSWORD || 'david123'}`)
 
   } catch (error) {
     console.error('❌ Error en el proceso:', error)

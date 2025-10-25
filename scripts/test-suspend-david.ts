@@ -50,7 +50,7 @@ async function testSuspendDavid() {
 
     console.log('\n📋 Credenciales de David:')
     console.log(`   Email: ${david.email}`)
-    console.log(`   Contraseña: david123`)
+    console.log(`   Contraseña: ${process.env.SEED_CLIENT_PASSWORD || 'david123'}`)
 
   } catch (error) {
     console.error('❌ Error:', error)

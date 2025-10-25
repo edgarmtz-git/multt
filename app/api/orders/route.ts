@@ -1,62 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { orderSchema } from '@/lib/validation'
+import { handleError, Errors, withErrorHandler } from '@/lib/error-handler'
+import { logger } from '@/lib/logger'
+import type { CreateOrderRequest, ApiResponse } from '@/types/api'
 
 // POST - Crear nuevo pedido
-export async function POST(request: NextRequest) {
-  try {
-    console.log('🚀 Starting order creation...')
-    const body = await request.json()
-    console.log('📝 Received body:', JSON.stringify(body, null, 2))
+export const POST = withErrorHandler(async (request: NextRequest) => {
+  const startTime = Date.now()
+  const body = await request.json()
 
-    // Validar con Zod
-    console.log('🔍 Starting validation...')
-    const validationResult = orderSchema.safeParse({
-      customerName: body.customerName,
-      customerWhatsApp: body.customerWhatsApp,
-      customerEmail: body.customerEmail,
-      deliveryMethod: body.deliveryMethod,
-      paymentMethod: body.paymentMethod,
-      address: body.address,
-      items: body.items,
-      subtotal: body.subtotal,
-      deliveryFee: body.deliveryFee,
-      total: body.total,
-      observations: body.observations
+  logger.apiRequest('POST', '/api/orders', {
+    storeSlug: body.storeSlug,
+    itemsCount: body.items?.length
+  })
+
+  // Validar con Zod
+  const validationResult = orderSchema.safeParse({
+    customerName: body.customerName,
+    customerWhatsApp: body.customerWhatsApp,
+    customerEmail: body.customerEmail,
+    deliveryMethod: body.deliveryMethod,
+    paymentMethod: body.paymentMethod,
+    address: body.address,
+    items: body.items,
+    subtotal: body.subtotal,
+    deliveryFee: body.deliveryFee,
+    total: body.total,
+    observations: body.observations
+  })
+
+  if (!validationResult.success) {
+    logger.warn('Order validation failed', {
+      errors: validationResult.error.issues,
+      storeSlug: body.storeSlug
     })
-    console.log('✅ Validation completed, success:', validationResult.success)
-
-    if (!validationResult.success) {
-      console.log('❌ Validation failed:', {
-        errors: validationResult.error.issues,
-        firstError: validationResult.error.issues[0],
-        receivedData: {
-          customerName: body.customerName,
-          customerWhatsApp: body.customerWhatsApp,
-          customerEmail: body.customerEmail,
-          deliveryMethod: body.deliveryMethod,
-          paymentMethod: body.paymentMethod,
-          address: body.address,
-          items: body.items,
-          itemsCount: body.items?.length,
-          firstItem: body.items?.[0],
-          subtotal: body.subtotal,
-          deliveryFee: body.deliveryFee,
-          total: body.total,
-          observations: body.observations
-        }
-      })
-
-      return NextResponse.json(
-        {
-          error: 'Datos inválidos',
-          message: validationResult.error.issues[0]?.message || 'Error de validación',
-          details: validationResult.error.issues,
-          errorCount: validationResult.error.issues.length
-        },
-        { status: 400 }
-      )
-    }
+    throw Errors.validation('Datos de pedido inválidos')
+  }
 
     const {
       customerName,
@@ -81,22 +61,25 @@ export async function POST(request: NextRequest) {
     })
 
     if (!store) {
-      return NextResponse.json(
-        { error: 'Tienda no encontrada' },
-        { status: 404 }
-      )
+      logger.warn('Store not found', { storeSlug })
+      throw Errors.notFound('Tienda no encontrada')
     }
 
     // Validar que la tienda esté activa
     if (!store.storeActive) {
-      return NextResponse.json(
-        { error: 'Tienda no disponible en este momento' },
-        { status: 403 }
-      )
+      logger.warn('Store not active', { storeSlug, storeName: store.storeName })
+      throw Errors.forbidden('Tienda no disponible en este momento')
     }
 
+    logger.businessLogic('Creating order', {
+      storeSlug,
+      storeName: store.storeName,
+      customerName,
+      total
+    })
+
     // Crear pedido usando transacción
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Crear el pedido con TODOS los campos
       const order = await tx.order.create({
         data: {
@@ -187,20 +170,24 @@ export async function POST(request: NextRequest) {
       itemsCount: result.orderItems.length
     })
 
+    const duration = Date.now() - startTime
+    logger.performance('Order creation', duration, {
+      orderId: result.order.id,
+      storeSlug,
+      total
+    })
+
+    logger.apiResponse('POST', '/api/orders', 200, {
+      orderId: result.order.id,
+      storeSlug
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Pedido creado exitosamente',
       order: orderData
     })
-
-  } catch (error) {
-    console.error('❌ Error creating order:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
-  }
-}
+})
 
 // NOTA: El endpoint GET fue eliminado por razones de seguridad.
 // No se usaba en el frontend y permitía acceso no autenticado a órdenes.

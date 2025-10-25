@@ -8,7 +8,13 @@ async function updateGoogleMapsKey() {
   console.log('🗺️ Actualizando API Key de Google Maps...\n')
 
   try {
-    const apiKey = 'AIzaSyAR95HjXMWUpAZ7PqquoMzBN9Of6EJ4dA4'
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY
+    
+    if (!apiKey) {
+      console.error('❌ GOOGLE_MAPS_API_KEY no está configurada en las variables de entorno')
+      console.log('💡 Configura la variable GOOGLE_MAPS_API_KEY en tu archivo .env.local')
+      return
+    }
     
     // Buscar todas las configuraciones de tienda
     const storeSettings = await prisma.storeSettings.findMany()

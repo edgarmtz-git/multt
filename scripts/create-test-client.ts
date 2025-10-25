@@ -36,7 +36,10 @@ async function createTestClient() {
     })
 
     // 2. Simular que el cliente acepta la invitación
-    const hashedPassword = await bcrypt.hash('maria123', 12)
+    const hashedPassword = await bcrypt.hash(
+      process.env.SEED_CLIENT_PASSWORD || 'maria123', 
+      12
+    )
     
     const result = await prisma.$transaction(async (tx) => {
       // Crear usuario

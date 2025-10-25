@@ -49,7 +49,7 @@ async function fixGoogleMapsAuth() {
           currency: 'MXN',
           distanceUnit: 'km',
           mapProvider: 'GOOGLE',
-          googleMapsApiKey: 'AIzaSyAR95HjXMWUpAZ7PqquoMzBN9Of6EJ4dA4',
+          googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
           taxRate: 0.0,
           taxMethod: 'included',
           enableBusinessHours: false,
@@ -70,7 +70,7 @@ async function fixGoogleMapsAuth() {
         where: { id: storeSettings.id },
         data: {
           mapProvider: 'GOOGLE',
-          googleMapsApiKey: 'AIzaSyAR95HjXMWUpAZ7PqquoMzBN9Of6EJ4dA4'
+          googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || ''
         }
       })
       console.log('✅ Configuración de tienda actualizada')

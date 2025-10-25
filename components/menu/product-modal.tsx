@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { ProductImage } from '@/components/ui/optimized-image'
 import {
   X,
   Plus,
@@ -193,10 +194,11 @@ export function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductM
               <div className="relative mb-6">
                 {product.imageUrl ? (
                   <div className="h-64 sm:h-80 bg-gray-100 rounded-lg overflow-hidden">
-                    <img
+                    <ProductImage
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
+                      priority={true}
                     />
                   </div>
                 ) : (

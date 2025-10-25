@@ -7,7 +7,10 @@ async function main() {
   console.log('🌱 Iniciando seed de la base de datos...')
 
   // ==================== USUARIO ADMIN ====================
-  const adminPassword = await bcrypt.hash('admin123', 12)
+  const adminPassword = await bcrypt.hash(
+    process.env.SEED_ADMIN_PASSWORD || 'admin123', 
+    12
+  )
   const admin = await prisma.user.upsert({
     where: { email: 'admin@sistema.com' },
     update: {},
@@ -26,7 +29,10 @@ async function main() {
   console.log('✅ Usuario admin creado:', admin.email)
 
   // ==================== RESTAURANTE: LA CASA DEL SABOR ====================
-  const restaurantPassword = await bcrypt.hash('restaurante123', 12)
+  const restaurantPassword = await bcrypt.hash(
+    process.env.SEED_CLIENT_PASSWORD || 'restaurante123', 
+    12
+  )
   const restaurant = await prisma.user.upsert({
     where: { email: 'restaurante@lacasadelsabor.com' },
     update: {},
@@ -621,11 +627,11 @@ async function main() {
   console.log('\n📋 CREDENCIALES DE ACCESO:')
   console.log('\n👨‍💼 ADMIN:')
   console.log('   Email: admin@sistema.com')
-  console.log('   Password: admin123')
+  console.log(`   Password: ${process.env.SEED_ADMIN_PASSWORD || 'admin123'}`)
   console.log('   Panel: ' + appUrl + '/admin')
   console.log('\n🍴 RESTAURANTE (La Casa del Sabor):')
   console.log('   Email: restaurante@lacasadelsabor.com')
-  console.log('   Password: restaurante123')
+  console.log(`   Password: ${process.env.SEED_CLIENT_PASSWORD || 'restaurante123'}`)
   console.log('   Slug: lacasadelsabor')
   console.log('   Dashboard: ' + appUrl + '/dashboard')
   console.log('   Tienda Pública: ' + appUrl + '/tienda/lacasadelsabor')

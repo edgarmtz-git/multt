@@ -14,7 +14,12 @@
     "db:reset": "prisma migrate reset",
     "verify:production": "tsx scripts/verify-production-config.ts",
     "storage:validate": "tsx scripts/validate-storage-config.ts",
-    "storage:migrate": "tsx scripts/migrate-storage.ts"
+    "storage:migrate": "tsx scripts/migrate-storage.ts",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -40,6 +45,8 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^0.5.6",
+    "@sentry/nextjs": "^10.22.0",
+    "@sentry/node": "^10.22.0",
     "@types/leaflet": "^1.9.20",
     "@types/multer": "^2.0.0",
     "@upstash/redis": "^1.34.9",
@@ -54,7 +61,6 @@
     "frimousse": "^0.2.0",
     "input-otp": "^1.4.2",
     "isomorphic-dompurify": "^2.28.0",
-    "jsdom": "^27.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
     "multer": "^2.0.2",
@@ -78,13 +84,20 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.6",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/ui": "^4.0.3",
+    "jsdom": "^27.0.0",
     "tailwindcss": "^4.1.6",
     "tsx": "^4.20.5",
     "tw-animate-css": "^1.2.9",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.3"
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }

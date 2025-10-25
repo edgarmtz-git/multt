@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { ProductImage } from "@/components/ui/optimized-image"
+import { LazyLoad } from "@/components/ui/lazy-load"
 import { 
   HelpCircle, 
   Upload, 
@@ -439,10 +441,12 @@ export default function ProductsPage() {
                     {/* Imagen del producto */}
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                       {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
+                        <ProductImage
+                          src={product.imageUrl}
                           alt={product.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full"
+                          width={48}
+                          height={48}
                         />
                       ) : (
                         <Package className="h-6 w-6 text-muted-foreground" />
