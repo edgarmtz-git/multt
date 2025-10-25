@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
           imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 512, 768, 1024],
           remotePatterns: [
             {
+              protocol: 'http',
+              hostname: 'localhost'
+            },
+            {
               protocol: 'https',
               hostname: process.env.NEXT_PUBLIC_BLOB_HOSTNAME || '**.vercel-storage.com'
             },
@@ -92,7 +96,7 @@ const nextConfig: NextConfig = {
         // Optimización de builds (removido - ya no es necesario en Next.js 15)
   
   // Configuración de webpack
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -108,6 +112,16 @@ const nextConfig: NextConfig = {
       config.externals.push({
         '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3'
       })
+    }
+
+    // Optimize for faster HMR in development
+    if (dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+      }
     }
 
     return config

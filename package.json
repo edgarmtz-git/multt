@@ -1,7 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "NODE_ENV=development DATABASE_URL='file:./prisma/dev.db' next dev",
+    "dev:turbo": "NODE_ENV=development DATABASE_URL='file:./prisma/dev.db' next dev --turbopack",
+    "dev:setup": "bash scripts/dev-setup.sh",
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "postinstall": "prisma generate",

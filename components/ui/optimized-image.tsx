@@ -40,6 +40,9 @@ export function OptimizedImage({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
+  // Normalizar src: convertir URLs absolutas de localhost a rutas relativas
+  const normalizedSrc = src.replace(/^https?:\/\/localhost(:\d+)?/, '')
+
   const handleLoad = () => {
     setIsLoading(false)
     onLoad?.()
@@ -95,7 +98,7 @@ export function OptimizedImage({
       )}
       
       <Image
-        src={src}
+        src={normalizedSrc}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
@@ -105,7 +108,7 @@ export function OptimizedImage({
         placeholder={placeholder}
         blurDataURL={placeholder === 'blur' ? defaultBlurDataURL : undefined}
         sizes={sizes}
-        loading={loading}
+        loading={priority ? undefined : loading}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(

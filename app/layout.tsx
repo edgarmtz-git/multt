@@ -46,7 +46,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Nanixhe Chicken" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
-      <body className={`${inter.className} light`}>
+      <body className={`${inter.className} light`} suppressHydrationWarning>
         <AuthSessionProvider>
           {children}
           <Toaster position="top-center" richColors />

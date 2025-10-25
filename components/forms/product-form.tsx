@@ -147,9 +147,10 @@ export function ProductForm({
   const { data: session } = useSession()
   
   // Debug: Log initial data (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 ProductForm initialData:', initialData)
-  }
+  // Commented out to prevent infinite re-renders
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log('🔍 ProductForm initialData:', initialData)
+  // }
 
   // Cast to any to avoid type errors with Prisma-generated types
   const data = initialData as any
@@ -205,9 +206,6 @@ export function ProductForm({
     // Opciones globales
     globalOptions: (() => {
       if (initialData?.globalOptions && Array.isArray(data?.globalOptions)) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Using globalOptions:', data?.globalOptions)
-        }
         return data?.globalOptions.map((go: any) => ({
           globalOptionId: go.globalOptionId || go.id,
           maxSelections: go.maxSelections,
@@ -215,9 +213,6 @@ export function ProductForm({
           isRequired: go.isRequired || false
         }))
       } else if ((initialData as any)?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Using productGlobalOptions:', data?.productGlobalOptions)
-        }
         return data?.productGlobalOptions.map((pgo: any) => ({
           globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
           maxSelections: pgo.maxSelections,
@@ -225,9 +220,6 @@ export function ProductForm({
           isRequired: pgo.isRequired || false
         }))
       } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 No global options found, using empty array')
-        }
         return []
       }
     })(),
@@ -253,9 +245,6 @@ export function ProductForm({
   const assignedGlobalOptions = React.useMemo(() => {
     // SIEMPRE usar formData.globalOptions si está definido (incluso si está vacío)
     if (formData.globalOptions !== undefined) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 Computing assigned global options from formData:', formData.globalOptions)
-      }
       return formData.globalOptions.map((fgo: any) => {
         const globalOption = availableGlobalOptions?.find(go => go.id === fgo.globalOptionId)
         return {
@@ -269,9 +258,6 @@ export function ProductForm({
     }
     // Solo usar initialData como fallback cuando formData.globalOptions no esté definido
     else if ((initialData as any)?.productGlobalOptions && Array.isArray(data?.productGlobalOptions)) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 Computing assigned global options from initialData:', data?.productGlobalOptions)
-      }
       return data?.productGlobalOptions.map((pgo: any) => ({
         globalOptionId: pgo.globalOptionId || pgo.globalOption?.id,
         maxSelections: pgo.maxSelections,
@@ -281,7 +267,7 @@ export function ProductForm({
       }))
     }
     return []
-  }, [formData.globalOptions, (initialData as any)?.productGlobalOptions, availableGlobalOptions])
+  }, [JSON.stringify(formData.globalOptions), JSON.stringify((initialData as any)?.productGlobalOptions), availableGlobalOptions])
   const [showReorderModal, setShowReorderModal] = useState(false)
   const [showAdvancedPricing, setShowAdvancedPricing] = useState(false)
   const [globalOptionsExpanded, setGlobalOptionsExpanded] = useState(false)
@@ -297,15 +283,9 @@ export function ProductForm({
         })
         if (response.ok) {
           const data = await response.json()
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔍 Available Global Options loaded:', data)
-          }
           setAvailableGlobalOptions(data)
         } else {
           // Si no está autenticado o hay error, mantener array vacío
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔍 Error loading global options:', response.status)
-          }
           setAvailableGlobalOptions([])
         }
       } catch (error) {
