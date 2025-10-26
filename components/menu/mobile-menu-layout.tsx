@@ -289,7 +289,7 @@ export function MobileMenuLayout({
             const options: any[] = []
             if (item.selectedOptions) {
               Object.entries(item.selectedOptions).forEach(([optionId, choices]) => {
-                choices.forEach((choice: any) => {
+                (choices as any[]).forEach((choice: any) => {
                   options.push({
                     name: choice.name,
                     value: choice.name,
