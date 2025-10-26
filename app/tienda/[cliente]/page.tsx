@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -135,9 +136,13 @@ export default function CustomerMenuPage() {
   const [showCheckout, setShowCheckout] = useState(false)
   const [completedOrder, setCompletedOrder] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
+  const [currentDay, setCurrentDay] = useState<number | null>(null)
 
   // Bloquear scroll del body cuando hay modales abiertos
   useEffect(() => {
+    // Verificar que estamos en el cliente antes de manipular document
+    if (typeof window === 'undefined') return
+
     if (showCheckout || showProductModal || showMapModal || showHoursModal || completedOrder) {
       document.body.classList.add('modal-open')
     } else {
@@ -151,12 +156,12 @@ export default function CustomerMenuPage() {
 
   useEffect(() => {
     setMounted(true)
+    setCurrentDay(new Date().getDay())
     loadStoreData()
-    
+
     // Timeout de seguridad para evitar que se quede cargando indefinidamente
     const timeout = setTimeout(() => {
       if (loading) {
-        console.log('⚠️ Forcing loading to false after timeout')
         setLoading(false)
       }
     }, 10000) // 10 segundos
@@ -230,31 +235,25 @@ export default function CustomerMenuPage() {
     try {
       setLoading(true)
       setStoreStatus('loading')
-      console.log('🔄 Loading store data for:', clienteId)
 
       // Cargar información de la tienda
       const storeResponse = await fetch(`/api/tienda/${clienteId}`)
-      console.log('🏪 Store response:', storeResponse.status)
 
       if (storeResponse.ok) {
         // Tienda encontrada y activa
         const storeData = await storeResponse.json()
-        console.log('🏪 Store data:', storeData)
         setStoreInfo(storeData)
         setStoreStatus('found')
         setIsOpen(checkIfOpen(storeData))
 
         // Cargar categorías y productos
         const categoriesResponse = await fetch(`/api/tienda/${clienteId}/categories`)
-        console.log('📁 Categories response:', categoriesResponse.status)
 
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json()
-          console.log('📁 Categories data:', categoriesData)
           setCategories(categoriesData)
         } else {
           // Tienda sin categorías (válido)
-          console.warn('⚠️ No categories found for store')
           setCategories([])
         }
       } else if (storeResponse.status === 404) {
@@ -343,15 +342,7 @@ export default function CustomerMenuPage() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     const deliveryFee = storeInfo?.deliveryEnabled ? (storeInfo?.baseDeliveryPrice || 0) : 0
     const total = subtotal + deliveryFee
-    
-    console.log('🛒 Cart totals calculation:', {
-      cartItems: cart.length,
-      subtotal,
-      deliveryFee,
-      total,
-      storeInfo: storeInfo?.storeSlug
-    })
-    
+
     return { subtotal, deliveryFee, total }
   }
 
@@ -507,137 +498,144 @@ export default function CustomerMenuPage() {
       <div className="relative">
         {/* Banner */}
         {storeInfo.bannerImage ? (
-          <div className="h-40 lg:h-48 bg-white relative">
-            <img 
-              src={storeInfo.bannerImage} 
-              alt="Banner" 
-              className="w-full h-full object-cover"
+          <div className="h-48 lg:h-64 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+            <Image
+              src={storeInfo.bannerImage}
+              alt="Banner"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
             />
-            {/* Overlay removido para evitar que oscurezca la imagen */}
-            
+            {/* Overlay sutil para mejorar legibilidad de badges */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+
             {/* Estado del restaurante - Esquina superior derecha */}
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex gap-2">
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shadow-md ${
-                isOpen 
-                  ? 'bg-green-500 text-white' 
-                  : 'bg-red-500 text-white'
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2.5">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${
+                isOpen
+                  ? 'bg-green-500/95 text-white'
+                  : 'bg-red-500/95 text-white'
               }`}>
-                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                <span className="hidden sm:inline">{isOpen ? 'Abierto' : 'Cerrado'}</span>
-                <span className="sm:hidden">{isOpen ? 'Abierto' : 'Cerrado'}</span>
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                <span>{isOpen ? 'Abierto' : 'Cerrado'}</span>
               </div>
-              
+
               {/* Botón de horarios */}
-              <button 
+              <button
                 onClick={() => setShowHoursModal(true)}
-                className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shadow-md bg-white/90 text-gray-700 hover:bg-white hover:shadow-lg transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm bg-white/95 text-gray-800 hover:bg-white hover:shadow-xl transition-all duration-200"
                 title="Ver horarios"
               >
-                <Timer className="w-3 h-3" />
+                <Timer className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Horario</span>
               </button>
             </div>
           </div>
         ) : (
-          <div className="h-40 lg:h-48 bg-white relative">
+          <div className="h-48 lg:h-64 bg-gradient-to-br from-blue-50 via-white to-gray-50 relative">
             {/* Estado del restaurante - Esquina superior derecha */}
-            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex gap-2">
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shadow-md ${
-                isOpen 
-                  ? 'bg-green-500 text-white' 
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2.5">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg ${
+                isOpen
+                  ? 'bg-green-500 text-white'
                   : 'bg-red-500 text-white'
               }`}>
-                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                <span className="hidden sm:inline">{isOpen ? 'Abierto' : 'Cerrado'}</span>
-                <span className="sm:hidden">{isOpen ? 'Abierto' : 'Cerrado'}</span>
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                <span>{isOpen ? 'Abierto' : 'Cerrado'}</span>
               </div>
-              
+
               {/* Botón de horarios */}
-              <button 
+              <button
                 onClick={() => setShowHoursModal(true)}
-                className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shadow-md bg-white/90 text-gray-700 hover:bg-white hover:shadow-lg transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg bg-white text-gray-800 hover:shadow-xl transition-all duration-200"
                 title="Ver horarios"
               >
-                <Timer className="w-3 h-3" />
+                <Timer className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Horario</span>
               </button>
             </div>
           </div>
         )}
-        
-        {/* Foto de perfil centrada - MEJORADA */}
-        <div className="absolute -bottom-12 lg:-bottom-16 left-1/2 transform -translate-x-1/2">
-          <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white rounded-full border-4 border-white shadow-xl flex items-center justify-center">
-            {storeInfo.profileImage ? (
-              <img 
-                src={storeInfo.profileImage} 
-                alt="Perfil" 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-blue-600 font-bold text-2xl">
-                {storeInfo.storeName.charAt(0)}
-              </span>
-            )}
+
+        {/* Foto de perfil centrada - MEJORADA con efecto elevation */}
+        <div className="absolute -bottom-14 lg:-bottom-18 left-1/2 transform -translate-x-1/2">
+          <div className="relative">
+            <div className="w-28 h-28 lg:w-36 lg:h-36 bg-white rounded-full border-4 border-white shadow-2xl flex items-center justify-center overflow-hidden relative">
+              {storeInfo.profileImage ? (
+                <Image
+                  src={storeInfo.profileImage}
+                  alt="Perfil"
+                  fill
+                  className="object-cover rounded-full"
+                  priority
+                />
+              ) : (
+                <span className="text-blue-600 font-bold text-3xl lg:text-4xl">
+                  {storeInfo.storeName.charAt(0)}
+                </span>
+              )}
+            </div>
+            {/* Ring decorativo */}
+            <div className="absolute inset-0 rounded-full border-2 border-blue-100 scale-110"></div>
           </div>
         </div>
       </div>
 
       {/* Header con información integrada - MEJORADO */}
-      <div className="bg-white shadow-sm mt-12 lg:mt-16">
-        <div className="px-4 lg:px-8 py-4">
+      <div className="bg-white shadow-sm mt-16 lg:mt-20 border-b border-gray-100">
+        <div className="px-4 lg:px-8 py-6">
           {/* Nombre y dirección */}
-          <div className="text-center mb-4">
-            <h1 className="text-xl font-bold text-gray-900">{storeInfo.storeName}</h1>
-            <div 
-              className="flex items-center justify-center text-sm text-gray-600 mt-1 cursor-pointer hover:text-blue-600 transition-colors"
+          <div className="text-center mb-6">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 tracking-tight">{storeInfo.storeName}</h1>
+            <div
+              className="inline-flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer hover:text-blue-600 transition-colors group"
               onClick={handleMapClick}
               title="Ver ubicación en mapa"
             >
-              <MapPin className="h-4 w-4 mr-1" />
-              <span>
+              <MapPin className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span className="font-medium">
                 {storeInfo.address?.street || storeInfo.address?.address || 'Dirección no disponible'}
               </span>
             </div>
           </div>
 
-
-          {/* Botones de acción */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3">
-            <Button variant="ghost" size="sm" className="p-3 sm:p-2 min-h-[48px] sm:min-h-0" title="Favorito">
-              <Heart className="h-5 w-5" />
+          {/* Botones de acción - Mejorados */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Button variant="ghost" size="sm" className="h-10 w-10 rounded-full hover:bg-gray-100 transition-all duration-200" title="Favorito">
+              <Heart className="h-5 w-5 text-gray-600" />
             </Button>
-            <Button variant="ghost" size="sm" className="p-3 sm:p-2 min-h-[48px] sm:min-h-0" title="Compartir">
-              <Share2 className="h-5 w-5" />
+            <Button variant="ghost" size="sm" className="h-10 w-10 rounded-full hover:bg-gray-100 transition-all duration-200" title="Compartir">
+              <Share2 className="h-5 w-5 text-gray-600" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-3 sm:p-2 min-h-[48px] sm:min-h-0" 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 rounded-full hover:bg-gray-100 transition-all duration-200"
               title="Llamar"
               onClick={handleCall}
             >
-              <Phone className="h-5 w-5" />
+              <Phone className="h-5 w-5 text-gray-600" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-3 sm:p-2 min-h-[48px] sm:min-h-0" 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 rounded-full hover:bg-green-50 transition-all duration-200"
               title="WhatsApp"
               onClick={handleWhatsApp}
             >
-              <MessageCircle className="h-5 w-5" />
+              <MessageCircle className="h-5 w-5 text-green-600" />
             </Button>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          {/* Search Bar - Mejorado */}
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               placeholder="Buscar productos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-4 sm:py-3 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm text-base"
+              className="pl-12 pr-4 py-4 w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white shadow-sm text-base transition-all duration-200"
             />
           </div>
         </div>
@@ -645,14 +643,14 @@ export default function CustomerMenuPage() {
 
 
       {/* Categories Navigation - MEJORADA */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="px-4 lg:px-8 py-3 sm:py-4">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm backdrop-blur-sm bg-white/95">
+        <div className="px-4 lg:px-8 py-4">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
-              className="whitespace-nowrap flex-shrink-0 py-2 px-4 min-h-[40px] sm:min-h-0"
+              className="whitespace-nowrap flex-shrink-0 py-2.5 px-5 rounded-full font-semibold transition-all duration-200 hover:scale-105"
             >
               Todos
             </Button>
@@ -662,7 +660,7 @@ export default function CustomerMenuPage() {
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className="whitespace-nowrap flex-shrink-0 py-2 px-4 min-h-[40px] sm:min-h-0"
+                className="whitespace-nowrap flex-shrink-0 py-2.5 px-5 rounded-full font-semibold transition-all duration-200 hover:scale-105"
               >
                 {category.name}
               </Button>
@@ -671,18 +669,23 @@ export default function CustomerMenuPage() {
         </div>
       </div>
 
-      {/* Products */}
-      <div className="px-4 lg:px-8 pt-8 pb-20 bg-white min-h-screen">
+      {/* Products - MEJORADO */}
+      <div className="px-4 lg:px-8 pt-10 pb-24 bg-gray-50 min-h-screen">
         {displayCategories.map((category) => (
-          <div key={category.id} className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6 px-2">{category.name}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div key={category.id} className="mb-12">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">{category.name}</h2>
+              {category.description && (
+                <p className="text-sm text-gray-500">{category.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {category.products
                 .filter(product => product.isActive)
                 .map((product) => (
-                <Card 
-                  key={product.id} 
-                  className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white shadow-md cursor-pointer rounded-2xl"
+                <Card
+                  key={product.id}
+                  className="overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-white shadow-md cursor-pointer rounded-3xl border-0 group"
                   onClick={() => {
                     setSelectedProduct(product)
                     setShowProductModal(true)
@@ -690,43 +693,48 @@ export default function CustomerMenuPage() {
                 >
                   <CardContent className="p-0">
                     {/* Layout horizontal con imagen a la izquierda */}
-                    <div className="flex h-32 sm:h-36">
+                    <div className="flex h-36 sm:h-40">
                       {/* Imagen del producto - LADO IZQUIERDO */}
-                      <div className="relative w-32 sm:w-40 h-full rounded-2xl overflow-hidden flex-shrink-0 p-1">
+                      <div className="relative w-36 sm:w-44 h-full overflow-hidden flex-shrink-0 p-2.5">
                         {product.imageUrl ? (
-                          <img
-                            src={product.imageUrl}
-                            alt={product.name}
-                            className="w-full h-full object-cover rounded-2xl"
-                          />
+                          <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                            <Image
+                              src={product.imageUrl}
+                              alt={product.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              sizes="(max-width: 640px) 144px, 176px"
+                              loading="lazy"
+                            />
+                          </div>
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center rounded-2xl">
-                            <span className="text-2xl sm:text-3xl">🍽️</span>
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center rounded-2xl">
+                            <span className="text-3xl sm:text-4xl">🍽️</span>
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Contenido del producto - LADO DERECHO */}
-                      <div className="flex-1 p-4 flex flex-col justify-between relative">
+                      <div className="flex-1 p-4 pr-3 flex flex-col justify-between relative">
                         {/* Información principal */}
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 text-lg sm:text-xl mb-1 line-clamp-1">{product.name}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-2 overflow-hidden">
+                          <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-1.5 line-clamp-2 leading-snug">{product.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-2 overflow-hidden leading-relaxed">
                             {product.description}
                           </p>
                         </div>
-                        
-                        {/* Precio y botón en esquina inferior derecha */}
-                        <div className="flex items-center justify-between">
+
+                        {/* Precio y botón */}
+                        <div className="flex items-center justify-between gap-2">
                           <div className="text-left">
-                            <p className="font-bold text-lg text-gray-900">
+                            <p className="font-bold text-xl text-gray-900">
                               ${product.price.toFixed(2)}
                             </p>
                           </div>
-                          
-                          {/* Botón agregar en esquina inferior derecha */}
+
+                          {/* Botón agregar */}
                           <Button
-                            className="bg-black hover:bg-gray-800 text-white rounded-full px-4 py-3 text-sm font-medium min-h-[44px] min-w-[90px] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-black hover:bg-gray-900 text-white rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!isOpen}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -738,6 +746,7 @@ export default function CustomerMenuPage() {
                               }
                             }}
                           >
+                            <Plus className="w-4 h-4 mr-1" />
                             {isOpen ? 'Agregar' : 'Cerrado'}
                           </Button>
                         </div>
@@ -867,26 +876,24 @@ export default function CustomerMenuPage() {
                       ? JSON.parse(storeInfo.unifiedSchedule) 
                       : storeInfo.unifiedSchedule
                     
-                    console.log('🔍 Modal Horarios - unifiedSchedule:', storeInfo.unifiedSchedule)
-                    console.log('🔍 Modal Horarios - parsed schedule:', schedule)
                     
                     
                     // Manejar el formato de operatingHours
                     if (schedule.operatingHours) {
                       const dayNames = {
                         monday: 'Lunes',
-                        tuesday: 'Martes', 
+                        tuesday: 'Martes',
                         wednesday: 'Miércoles',
                         thursday: 'Jueves',
                         friday: 'Viernes',
                         saturday: 'Sábado',
                         sunday: 'Domingo'
                       }
-                      
-                      const currentDay = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()]
-                      
+
+                      const todayKey = currentDay !== null ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][currentDay] : null
+
                       return Object.entries(schedule.operatingHours).map(([day, config]: [string, any]) => {
-                        const isToday = day === currentDay
+                        const isToday = day === todayKey
                         
                         let timeDisplay = 'Cerrado'
                         if (config.isOpen && config.periods && config.periods.length > 0) {
@@ -915,12 +922,10 @@ export default function CustomerMenuPage() {
                     const dayKeys = [
                       'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
                     ]
-                    
-                    const currentDay = new Date().getDay()
-                    
+
                     return dayKeys.map((dayKey, index) => {
                       const daySchedule = schedule[dayKey]
-                      const isToday = index === currentDay
+                      const isToday = currentDay !== null && index === currentDay
                       
                       let timeDisplay = 'Cerrado'
                       if (daySchedule?.isAvailable && daySchedule.slots && daySchedule.slots.length > 0) {

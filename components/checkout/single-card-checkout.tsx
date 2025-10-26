@@ -159,12 +159,10 @@ export default function SingleCardCheckout({
         setDeliveryMethod('pickup')
         toast.info('Esta tienda solo ofrece recoger en local')
       }
-      // Si deliveryEnabled = true, seleccionar delivery automáticamente (solo la primera vez)
-      else if (storeInfo.deliveryEnabled && deliveryMethod === 'pickup') {
-        setDeliveryMethod('delivery')
-      }
+      // ❌ REMOVIDO: No forzar delivery automáticamente
+      // El usuario debe poder elegir libremente entre pickup y delivery
     }
-  }, [storeInfo])
+  }, [storeInfo, deliveryMethod])
 
   // Observaciones
   const [observations, setObservations] = useState('')
@@ -188,10 +186,6 @@ export default function SingleCardCheckout({
         const response = await fetch(`/api/store/${storeSlug}`)
         if (response.ok) {
           const data = await response.json()
-          console.log('🏪 Store Info loaded:', {
-            deliveryEnabled: data.deliveryEnabled,
-            deliveryCalculationMethod: data.deliveryCalculationMethod
-          })
           setStoreInfo(data)
 
           // Si el método es por zonas, cargar las zonas
@@ -287,8 +281,8 @@ export default function SingleCardCheckout({
         customerName,
         customerWhatsApp,
         customerEmail: customerEmail.trim() || undefined,
-        deliveryMethod,
-        paymentMethod,
+        deliveryMethod: deliveryMethod.toUpperCase() as 'DELIVERY' | 'PICKUP',
+        paymentMethod: paymentMethod.toUpperCase() as 'CASH' | 'CARD' | 'TRANSFER',
         address: deliveryMethod === 'delivery' ? addressFields : null,
         items: formattedItems,
         subtotal: subtotal || 0,
@@ -309,21 +303,32 @@ export default function SingleCardCheckout({
       })
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json().catch(() => ({}))
-        console.error('❌ Error del servidor:', errorData)
-        const errorMessage = errorData.message || errorData.error || 'Error al crear pedido en el sistema'
+        let errorData: any = {}
+        const errorText = await orderResponse.text()
+        console.error('❌ Error HTTP Status:', orderResponse.status)
+        console.error('❌ Error Response Text:', errorText)
+
+        try {
+          errorData = JSON.parse(errorText)
+        } catch (e) {
+          console.error('❌ No se pudo parsear respuesta de error')
+        }
+
+        console.error('❌ Error del servidor completo:', errorData)
+        const errorMessage = errorData.message || errorData.error || `Error ${orderResponse.status}: ${errorText}`
         throw new Error(errorMessage)
       }
 
       const orderResult = await orderResponse.json()
-      console.log('✅ Pedido creado en sistema:', orderResult)
 
       // Generar mensaje de WhatsApp
       const whatsappMessage = generateWhatsAppMessage(orderData, orderResult.order?.id)
-      
-      // Abrir WhatsApp
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${storeInfo?.whatsappMainNumber}&text=${encodeURIComponent(whatsappMessage)}`
-      window.open(whatsappUrl, '_blank')
+
+      // Abrir WhatsApp (verificar que estamos en el cliente)
+      if (typeof window !== 'undefined' && storeInfo?.whatsappMainNumber) {
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${storeInfo.whatsappMainNumber}&text=${encodeURIComponent(whatsappMessage)}`
+        window.open(whatsappUrl, '_blank')
+      }
 
       // Llamar callback
       onOrderComplete(orderData)
@@ -341,18 +346,24 @@ export default function SingleCardCheckout({
 
   // Generar mensaje de WhatsApp
   const generateWhatsAppMessage = (orderData: any, orderId?: string) => {
-    let message = `🍽️ *NUEVO PEDIDO* - ${orderData.orderNumber}\n\n`
-    
+    let message = `🍽️ *NUEVO PEDIDO* - ${orderData.orderNumber || 'Sin número'}\n\n`
+
     // Información del cliente
-    message += `👤 *Cliente:* ${orderData.customerName}\n`
-    message += `📱 *Teléfono:* +52${orderData.customerWhatsApp}\n\n`
-    
+    message += `👤 *Cliente:* ${orderData.customerName || 'Sin nombre'}\n`
+    message += `📱 *Teléfono:* +52${orderData.customerWhatsApp || 'Sin teléfono'}\n\n`
+
     // Dirección
     if (orderData.deliveryMethod === 'delivery' && orderData.address) {
       message += `📍 *Dirección de entrega:*\n`
-      message += `• Calle: ${orderData.address.street}\n`
-      message += `• Número: ${orderData.address.number}\n`
-      message += `• Colonia: ${orderData.address.neighborhood}\n`
+      message += `• Calle: ${orderData.address.street || 'N/A'}\n`
+      message += `• Número: ${orderData.address.number || 'S/N'}\n`
+      message += `• Colonia: ${orderData.address.neighborhood || 'N/A'}\n`
+      if (orderData.address.street1) {
+        message += `• Entre calles: ${orderData.address.street1}\n`
+      }
+      if (orderData.address.houseType) {
+        message += `• Tipo de vivienda: ${orderData.address.houseType}\n`
+      }
       if (orderData.address.reference) {
         message += `• Referencias: ${orderData.address.reference}\n`
       }
@@ -363,8 +374,9 @@ export default function SingleCardCheckout({
     
     // Resumen de precios
     message += `💰 *Resumen:*\n`
-    message += `• Subtotal: $${orderData.subtotal.toFixed(2)}\n`
-    
+    const subtotal = orderData.subtotal || 0
+    message += `• Subtotal: $${subtotal.toFixed(2)}\n`
+
     // Información de envío según el método configurado
     if (orderData.deliveryMethod === 'delivery') {
       if (deliveryCalculation) {
@@ -372,7 +384,7 @@ export default function SingleCardCheckout({
         switch (calc.method) {
           case 'distance':
             if (calc.price > 0) {
-              message += `• Envío (${calc.distance} km): $${calc.price.toFixed(2)}\n`
+              message += `• Envío (${calc.distance || 0} km): $${calc.price.toFixed(2)}\n`
             } else {
               message += `• Envío: Gratis\n`
             }
@@ -385,54 +397,63 @@ export default function SingleCardCheckout({
             }
             break
           case 'manual':
-            message += `• Envío: ${deliveryCalculation.message}\n`
+            message += `• Envío: ${deliveryCalculation.message || 'A calcular'}\n`
             break
           default:
-            if (orderData.deliveryFee > 0) {
+            if (orderData.deliveryFee && orderData.deliveryFee > 0) {
               message += `• Envío: $${orderData.deliveryFee.toFixed(2)}\n`
             } else {
               message += `• Envío: Gratis\n`
             }
         }
-      } else if (orderData.deliveryFee > 0) {
+      } else if (orderData.deliveryFee && orderData.deliveryFee > 0) {
         message += `• Envío: $${orderData.deliveryFee.toFixed(2)}\n`
       } else {
         message += `• Envío: Gratis\n`
       }
     }
-    
-    message += `• Total: $${orderData.total.toFixed(2)}\n`
+
+    const total = orderData.total || 0
+    message += `• Total: $${total.toFixed(2)}\n`
     message += `• Pago: ${orderData.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia'}\n`
-    if (orderData.amountPaid) {
+    if (orderData.amountPaid && orderData.amountPaid > 0) {
       message += `• Pagará con: $${orderData.amountPaid.toFixed(2)}\n`
-      message += `• Cambio: $${orderData.change.toFixed(2)}\n`
+      const change = orderData.change || 0
+      message += `• Cambio: $${change.toFixed(2)}\n`
     }
     message += `\n`
     
     // Productos
     message += `📋 *Pedido:*\n`
-    orderData.items.forEach((item: any) => {
-      message += `• ${item.quantity}x ${item.name} - $${item.price.toFixed(2)}\n`
-      if (item.variantName) {
-        message += `  - Variante: ${item.variantName}\n`
-      }
-      if (item.options && item.options.length > 0) {
-        item.options.forEach((option: any) => {
-          message += `  - ${option.name}: ${option.value}\n`
-        })
-      }
-    })
-    
-    if (orderData.observations) {
+    if (orderData.items && Array.isArray(orderData.items)) {
+      orderData.items.forEach((item: any) => {
+        const quantity = item.quantity || 1
+        const name = item.name || 'Producto sin nombre'
+        const price = item.price || 0
+        message += `• ${quantity}x ${name} - $${price.toFixed(2)}\n`
+        if (item.variantName) {
+          message += `  - Variante: ${item.variantName}\n`
+        }
+        if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+          item.options.forEach((option: any) => {
+            const optName = option.name || 'Opción'
+            const optValue = option.value || option.choiceName || 'N/A'
+            message += `  - ${optName}: ${optValue}\n`
+          })
+        }
+      })
+    }
+
+    if (orderData.observations && orderData.observations.trim()) {
       message += `\n📝 *Observaciones:* ${orderData.observations}`
     }
-    
-    // Agregar enlace de seguimiento si hay orderId
-    if (orderId) {
-      message += `\n\n🔗 *Seguimiento:* Puedes ver el estado de tu pedido en:`
-      message += `\n${window.location.origin}/tracking/order/${orderId}`
+
+    // Agregar enlace de seguimiento
+    // Nota: WhatsApp detecta mejor los links si están en su propia línea sin texto antes
+    if (orderId && typeof window !== 'undefined') {
+      message += `\n\n🔗 *Seguimiento del pedido:*\n${window.location.origin}/tracking/order/${orderId}`
     }
-    
+
     return message
   }
 
@@ -511,41 +532,75 @@ export default function SingleCardCheckout({
               Método de Entrega
             </h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="delivery-method" className="text-sm font-medium">Selecciona el método de entrega *</Label>
-              <Select value={deliveryMethod} onValueChange={(value: 'pickup' | 'delivery') => setDeliveryMethod(value)}>
-                <SelectTrigger className="w-full h-12 text-base">
-                  <SelectValue placeholder="Elige cómo quieres recibir tu pedido" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="pickup" className="cursor-pointer py-3">
-                    <div className="flex items-center gap-3 py-1">
-                      <Store className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                      <div className="flex flex-col">
-                        <p className="font-medium text-sm">Recoger en local</p>
-                        <p className="text-xs text-gray-600">Sin costo de envío</p>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Selecciona el método de entrega *</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Opción: Recoger en local */}
+                <div
+                  className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    deliveryMethod === 'pickup'
+                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                      : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                  }`}
+                  onClick={() => setDeliveryMethod('pickup')}
+                >
+                  {/* Checkmark cuando está seleccionado */}
+                  {deliveryMethod === 'pickup' && (
+                    <div className="absolute top-3 right-3 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center text-center space-y-2">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      deliveryMethod === 'pickup' ? 'bg-blue-500' : 'bg-blue-100'
+                    }`}>
+                      <Store className={`h-6 w-6 ${deliveryMethod === 'pickup' ? 'text-white' : 'text-blue-500'}`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-base">Recoger en local</p>
+                      <p className="text-sm text-gray-600 mt-1">Sin costo de envío</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Opción: Entrega a domicilio (solo si está habilitado) */}
+                {storeInfo?.deliveryEnabled && (
+                  <div
+                    className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      deliveryMethod === 'delivery'
+                        ? 'border-green-500 bg-green-50 shadow-md'
+                        : 'border-gray-200 hover:border-green-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => setDeliveryMethod('delivery')}
+                  >
+                    {/* Checkmark cuando está seleccionado */}
+                    {deliveryMethod === 'delivery' && (
+                      <div className="absolute top-3 right-3 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+
+                    <div className="flex flex-col items-center text-center space-y-2">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        deliveryMethod === 'delivery' ? 'bg-green-500' : 'bg-green-100'
+                      }`}>
+                        <Home className={`h-6 w-6 ${deliveryMethod === 'delivery' ? 'text-white' : 'text-green-500'}`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-base">Entrega a domicilio</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {deliveryCalculation && calculatedDeliveryFee > 0 ? (
+                            `+$${calculatedDeliveryFee.toFixed(2)} de envío`
+                          ) : (
+                            'Costo calculado al seleccionar dirección'
+                          )}
+                        </p>
                       </div>
                     </div>
-                  </SelectItem>
-                  {storeInfo?.deliveryEnabled && (
-                    <SelectItem value="delivery" className="cursor-pointer py-3">
-                      <div className="flex items-center gap-3 py-1">
-                        <Home className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <div className="flex flex-col">
-                          <p className="font-medium text-sm">Entrega a domicilio</p>
-                          <p className="text-xs text-gray-600">
-                            {deliveryCalculation && calculatedDeliveryFee > 0 ? (
-                              `+$${calculatedDeliveryFee.toFixed(2)} de envío`
-                            ) : (
-                              'Costo calculado al seleccionar dirección'
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

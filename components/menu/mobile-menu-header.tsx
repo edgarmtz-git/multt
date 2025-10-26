@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  MapPin, 
-  Clock, 
-  Phone, 
-  MessageCircle, 
+import Image from 'next/image'
+import {
+  MapPin,
+  Clock,
+  Phone,
+  MessageCircle,
   Share2,
   Timer,
   ChevronDown
@@ -63,90 +64,100 @@ export function MobileMenuHeader({
 
   return (
     <div className="relative bg-white">
-      {/* Banner optimizado para móvil */}
-      <div className="relative h-48 sm:h-56 lg:h-64">
+      {/* Banner optimizado para móvil - MEJORADO */}
+      <div className="relative h-52 sm:h-60 lg:h-64">
         {storeInfo.bannerImage ? (
-          <img 
-            src={storeInfo.bannerImage} 
-            alt="Banner" 
-            className="w-full h-full object-cover"
-          />
+          <>
+            <Image
+              src={storeInfo.bannerImage}
+              alt="Banner"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
+            {/* Overlay gradiente mejorado */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          </>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <span className="text-6xl text-white opacity-80">🍽️</span>
+          <div className="w-full h-full bg-gradient-to-br from-blue-50 via-white to-gray-50 flex items-center justify-center">
+            <span className="text-7xl opacity-20">🍽️</span>
           </div>
         )}
-        
-        {/* Overlay sutil para mejor legibilidad */}
-        <div className="absolute inset-0 bg-black/10" />
-        
-        {/* Status y acciones - Top right */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2">
+
+        {/* Status y acciones - Top right - MEJORADOS */}
+        <div className="absolute top-4 right-4 flex flex-col gap-2.5">
           {/* Estado del restaurante */}
-          <Badge 
+          <Badge
             variant={isOpen ? "default" : "destructive"}
-            className={`px-4 py-2 text-sm font-semibold shadow-lg ${
-              isOpen 
-                ? 'bg-green-500 hover:bg-green-600 text-white' 
-                : 'bg-red-500 hover:bg-red-600 text-white'
+            className={`px-3 py-2 text-sm font-semibold shadow-xl backdrop-blur-sm ${
+              isOpen
+                ? 'bg-green-500/95 hover:bg-green-600 text-white'
+                : 'bg-red-500/95 hover:bg-red-600 text-white'
             }`}
           >
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>{isOpen ? 'Abierto' : 'Cerrado'}</span>
             </div>
           </Badge>
-          
+
           {/* Botón de horarios */}
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setShowHoursModal(true)}
-            className="px-4 py-2 h-auto bg-white/95 hover:bg-white shadow-lg text-gray-700 text-sm font-semibold"
+            className="px-3 py-2 h-auto bg-white/95 hover:bg-white shadow-xl text-gray-800 text-sm font-semibold backdrop-blur-sm transition-all duration-200"
           >
             <Timer className="w-4 h-4 mr-1.5" />
             Horario
           </Button>
         </div>
       </div>
-      
-      {/* Foto de perfil - Centrada y mejor posicionada */}
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-          {storeInfo.profileImage ? (
-            <img 
-              src={storeInfo.profileImage} 
-              alt="Perfil" 
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            <span className="text-blue-600 font-bold text-xl sm:text-2xl">
-              {storeInfo.storeName.charAt(0)}
-            </span>
-          )}
+
+      {/* Foto de perfil - MEJORADA con elevation */}
+      <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2">
+        <div className="relative">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-full border-4 border-white shadow-2xl flex items-center justify-center overflow-hidden relative">
+            {storeInfo.profileImage ? (
+              <Image
+                src={storeInfo.profileImage}
+                alt="Perfil"
+                fill
+                className="object-cover rounded-full"
+                priority
+              />
+            ) : (
+              <span className="text-blue-600 font-bold text-2xl sm:text-3xl">
+                {storeInfo.storeName.charAt(0)}
+              </span>
+            )}
+          </div>
+          {/* Ring decorativo */}
+          <div className="absolute inset-0 rounded-full border-2 border-blue-100 scale-110"></div>
         </div>
       </div>
       
-      {/* Información de la tienda - Mejor espaciado */}
-      <div className="pt-10 pb-6 px-4 sm:px-6">
+      {/* Información de la tienda - MEJORADO */}
+      <div className="pt-12 pb-6 px-4 sm:px-6">
         {/* Nombre de la tienda */}
-        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 text-center mb-3">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-2 tracking-tight">
           {storeInfo.storeName}
         </h1>
-        
+
         {/* Dirección - Mejorada */}
-        <div className="text-center mb-4">
+        <div className="text-center mb-6">
           <button
             onClick={onMapClick}
-            className="flex items-center justify-center text-sm text-gray-600 hover:text-blue-600 transition-colors group"
+            className="inline-flex items-center justify-center text-sm text-gray-600 hover:text-blue-600 transition-colors group"
           >
             <MapPin className="h-4 w-4 mr-1.5 group-hover:scale-110 transition-transform" />
-            <span className="max-w-xs truncate">
+            <span className="max-w-xs truncate font-medium">
               {storeInfo.address?.street || storeInfo.address?.address || 'Dirección no disponible'}
             </span>
             <ChevronDown className="h-3 w-3 ml-1 group-hover:rotate-180 transition-transform" />
           </button>
-          
+
           {/* Dirección completa expandible */}
           {showFullAddress && storeInfo.address && (
             <div className="mt-2 text-xs text-gray-500 animate-in slide-in-from-top-2 duration-200">
@@ -156,44 +167,44 @@ export function MobileMenuHeader({
             </div>
           )}
         </div>
-        
-        {/* Botones de acción - Optimizados para móvil */}
-        <div className="flex flex-wrap gap-3 justify-center">
+
+        {/* Botones de acción - Optimizados para móvil con mejor diseño */}
+        <div className="flex flex-wrap gap-2.5 justify-center mb-4">
           <Button
             variant="outline"
             size="sm"
             onClick={onCall}
-            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
+            className="flex-1 min-w-[100px] h-11 text-sm font-semibold rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200"
           >
-            <Phone className="w-5 h-5 mr-2" />
+            <Phone className="w-4 h-4 mr-2" />
             Llamar
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
             onClick={onWhatsApp}
-            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
+            className="flex-1 min-w-[100px] h-11 text-sm font-semibold rounded-xl border-green-200 text-green-700 hover:bg-green-50 transition-all duration-200"
           >
-            <MessageCircle className="w-5 h-5 mr-2" />
+            <MessageCircle className="w-4 h-4 mr-2" />
             WhatsApp
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
             onClick={onShare}
-            className="flex-1 min-w-[130px] h-12 text-base font-semibold"
+            className="flex-1 min-w-[100px] h-11 text-sm font-semibold rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200"
           >
-            <Share2 className="w-5 h-5 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             Compartir
           </Button>
         </div>
-        
+
         {/* Información adicional */}
         {storeInfo.deliveryEnabled && (
-          <div className="mt-4 text-center">
-            <Badge variant="secondary" className="text-xs">
+          <div className="text-center">
+            <Badge variant="secondary" className="text-xs px-3 py-1.5 bg-blue-50 text-blue-700 border-blue-200">
               🚚 Envío disponible
             </Badge>
           </div>

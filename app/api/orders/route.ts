@@ -35,7 +35,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       errors: validationResult.error.issues,
       storeSlug: body.storeSlug
     })
-    throw Errors.validation('Datos de pedido inválidos')
+    throw Errors.validation(`Datos de pedido inválidos: ${validationResult.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`)
   }
 
     const {

@@ -137,23 +137,33 @@ export const orderSchema = z.object({
   deliveryMethod: z.enum(['DELIVERY', 'PICKUP']),
   paymentMethod: z.enum(['CASH', 'CARD', 'TRANSFER']),
   address: z.object({
-    street: z.string().min(5, 'La dirección debe tener al menos 5 caracteres').max(200),
-    city: z.string().min(2, 'La ciudad debe tener al menos 2 caracteres').max(50),
-    state: z.string().min(2, 'El estado debe tener al menos 2 caracteres').max(50),
-    zipCode: z.string().min(3, 'El código postal debe tener al menos 3 caracteres').max(10),
-    country: z.string().min(2, 'El país debe tener al menos 2 caracteres').max(50),
+    street: z.string().min(1, 'La calle es requerida').max(200).optional(),
+    number: z.string().max(20).optional(),
+    neighborhood: z.string().max(100).optional(),
+    city: z.string().max(50).optional(),
+    state: z.string().max(50).optional(),
+    zipCode: z.string().max(10).optional(),
+    country: z.string().max(50).optional(),
+    street1: z.string().max(200).optional(),
+    street2: z.string().max(200).optional(),
+    houseType: z.string().max(50).optional(),
+    reference: z.string().max(500).optional(),
     coordinates: z.object({
-      latitude: z.number().min(-90).max(90),
-      longitude: z.number().min(-180).max(180)
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180)
     }).optional()
-  }),
+  }).nullable().optional(),
   items: z.array(z.object({
-    productId: z.string().uuid('ID de producto inválido'),
+    id: z.string().min(1, 'ID de producto requerido'),
+    name: z.string().min(1, 'Nombre de producto requerido'),
     quantity: validators.quantity,
-    selectedOptions: z.array(z.object({
-      optionName: z.string().min(1).max(50),
-      variantName: z.string().min(1).max(50),
-      price: validators.price
+    price: validators.price,
+    variantName: z.string().optional(),
+    variantId: z.string().nullable().optional(),
+    options: z.array(z.object({
+      name: z.string().min(1).max(100),
+      value: z.string().min(1).max(100).optional(),
+      price: validators.price.optional()
     })).optional().default([])
   })).min(1, 'Debe tener al menos un producto'),
   subtotal: validators.price,

@@ -142,16 +142,29 @@ export function MobileMenuLayout({
   }
 
   const handleShare = () => {
+    // Verificar que estamos en el cliente
+    if (typeof window === 'undefined') return
+
+    const url = window.location.href
+
     if (navigator.share) {
       navigator.share({
         title: storeInfo.storeName,
         text: `Mira el menú de ${storeInfo.storeName}`,
-        url: window.location.href
+        url: url
+      }).catch((error) => {
+        // Ignorar si el usuario cancela
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error)
+        }
       })
     } else {
       // Fallback para navegadores que no soportan Web Share API
-      navigator.clipboard.writeText(window.location.href)
-      // Aquí podrías mostrar un toast
+      navigator.clipboard.writeText(url).then(() => {
+        // toast.success('Enlace copiado al portapapeles')
+      }).catch((error) => {
+        console.error('Error copying to clipboard:', error)
+      })
     }
   }
 
@@ -160,7 +173,7 @@ export function MobileMenuLayout({
       {/* PWA Components */}
       <InstallPrompt />
       <ServiceWorkerRegister />
-      
+
       {/* Header mejorado */}
       <MobileMenuHeader
         storeInfo={storeInfo}
@@ -182,56 +195,56 @@ export function MobileMenuLayout({
         totalProducts={totalProducts}
       />
 
-      {/* Lista de productos */}
-      <div className="px-4 py-6">
+      {/* Lista de productos - MEJORADA */}
+      <div className="px-4 py-8">
         {displayCategories.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
               No se encontraron productos
             </h3>
             <p className="text-gray-600">
-              {searchTerm 
+              {searchTerm
                 ? 'Intenta con otros términos de búsqueda'
                 : 'No hay productos disponibles en este momento'
               }
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-10">
             {displayCategories.map((category) => (
               <div key={category.id}>
-                {/* Título de categoría */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg"
+                {/* Título de categoría - MEJORADO */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg"
                     style={{ backgroundColor: category.color }}
                   >
                     {category.icon}
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                       {category.name}
                     </h2>
                     {category.description && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-500 mt-0.5">
                         {category.description}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Grid de productos */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Grid de productos - MEJORADO */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {category.products
                     .filter(product => product.isActive)
                     .map((product) => {
-                      const cartItem = cart.find(item => 
+                      const cartItem = cart.find(item =>
                         item.product.id === product.id &&
                         JSON.stringify(item.selectedVariants) === JSON.stringify([]) &&
                         JSON.stringify(item.selectedOptions) === JSON.stringify({})
                       )
-                      
+
                       return (
                         <MobileProductCard
                           key={product.id}
@@ -271,19 +284,35 @@ export function MobileMenuLayout({
       {showCheckout && (
         <SingleCardCheckout
           storeSlug={storeInfo.storeSlug}
-          cartItems={cart.map(item => ({
-            id: item.product.id,
-            name: item.product.name,
-            quantity: item.quantity,
-            price: item.price,
-            variantName: item.selectedVariants && item.selectedVariants.length > 0 
-              ? item.selectedVariants[0].name 
-              : undefined,
-            variantId: item.selectedVariants && item.selectedVariants.length > 0 
-              ? item.selectedVariants[0].id 
-              : undefined,
-            options: item.selectedOptions
-          }))}
+          cartItems={cart.map(item => {
+            // Transformar selectedOptions a un array plano de opciones
+            const options: any[] = []
+            if (item.selectedOptions) {
+              Object.entries(item.selectedOptions).forEach(([optionId, choices]) => {
+                choices.forEach((choice: any) => {
+                  options.push({
+                    name: choice.name,
+                    value: choice.name,
+                    price: choice.price || 0
+                  })
+                })
+              })
+            }
+
+            return {
+              id: item.product.id,
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.price,
+              variantName: item.selectedVariants && item.selectedVariants.length > 0
+                ? item.selectedVariants[0].name
+                : undefined,
+              variantId: item.selectedVariants && item.selectedVariants.length > 0
+                ? item.selectedVariants[0].id
+                : undefined,
+              options
+            }
+          })}
           subtotal={cart.reduce((sum, item) => sum + item.totalPrice, 0)}
           deliveryFee={storeInfo.deliveryEnabled ? (storeInfo.baseDeliveryPrice || 0) : 0}
           total={cart.reduce((sum, item) => sum + item.totalPrice, 0) + (storeInfo.deliveryEnabled ? (storeInfo.baseDeliveryPrice || 0) : 0)}

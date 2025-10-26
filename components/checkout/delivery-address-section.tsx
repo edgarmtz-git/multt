@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Card } from '@/components/ui/card'
@@ -418,60 +417,53 @@ export default function DeliveryAddressSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="neighborhood" className="text-sm font-medium">Colonia *</Label>
-              <Input
-                id="neighborhood"
-                value={addressFields.neighborhood}
-                onChange={(e) => setAddressFields((prev: any) => ({ ...prev, neighborhood: e.target.value }))}
-                placeholder="Colonia"
-                className="mt-1 h-12 text-base"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="houseType" className="text-sm font-medium">Tipo de vivienda *</Label>
-              <Select
-                value={addressFields.houseType}
-                onValueChange={(value) => setAddressFields((prev: any) => ({ ...prev, houseType: value }))}
-              >
-                <SelectTrigger className="mt-1 h-12 text-base">
-                  <SelectValue placeholder="Selecciona el tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Casa">Casa</SelectItem>
-                  <SelectItem value="Departamento">Departamento</SelectItem>
-                  <SelectItem value="Edificio">Edificio</SelectItem>
-                  <SelectItem value="Negocio">Negocio/Local</SelectItem>
-                  <SelectItem value="Otro">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="neighborhood" className="text-sm font-medium">Colonia *</Label>
+            <Input
+              id="neighborhood"
+              value={addressFields.neighborhood}
+              onChange={(e) => setAddressFields((prev: any) => ({ ...prev, neighborhood: e.target.value }))}
+              placeholder="Colonia"
+              className="mt-1 h-12 text-base"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="street1" className="text-sm font-medium">Entre calles</Label>
-              <Input
-                id="street1"
-                value={addressFields.street1}
-                onChange={(e) => setAddressFields((prev: any) => ({ ...prev, street1: e.target.value }))}
-                placeholder="Calle 1 y Calle 2"
-                className="mt-1 h-12 text-base"
-              />
-            </div>
+          <div>
+            <Label htmlFor="street1" className="text-sm font-medium">Entre calles</Label>
+            <Input
+              id="street1"
+              value={addressFields.street1}
+              onChange={(e) => setAddressFields((prev: any) => ({ ...prev, street1: e.target.value }))}
+              placeholder="Calle 1 y Calle 2"
+              className="mt-1 h-12 text-base"
+            />
+          </div>
 
-            <div>
-              <Label htmlFor="reference" className="text-sm font-medium">Referencias</Label>
-              <Input
-                id="reference"
-                value={addressFields.reference}
-                onChange={(e) => setAddressFields((prev: any) => ({ ...prev, reference: e.target.value }))}
-                placeholder="Portón verde, casa esquina, etc."
-                className="mt-1 h-12 text-base"
-              />
-            </div>
+          <div>
+            <Label htmlFor="houseType" className="text-sm font-medium">Tipo de vivienda *</Label>
+            <select
+              id="houseType"
+              value={addressFields.houseType}
+              onChange={(e) => setAddressFields((prev: any) => ({ ...prev, houseType: e.target.value }))}
+              className="mt-1 h-12 text-base w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">Selecciona el tipo</option>
+              <option value="casa">Casa</option>
+              <option value="departamento">Departamento</option>
+              <option value="oficina">Oficina</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <Label htmlFor="reference" className="text-sm font-medium">Referencias</Label>
+            <Input
+              id="reference"
+              value={addressFields.reference}
+              onChange={(e) => setAddressFields((prev: any) => ({ ...prev, reference: e.target.value }))}
+              placeholder="Portón verde, casa esquina, etc."
+              className="mt-1 h-12 text-base"
+            />
           </div>
         </div>
       )}

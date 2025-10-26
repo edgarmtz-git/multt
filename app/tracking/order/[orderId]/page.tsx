@@ -104,8 +104,8 @@ export default function OrderTrackingPage() {
   const fetchOrder = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/orders/${orderId}`)
-      
+      const response = await fetch(`/api/tracking/${orderId}`)
+
       if (!response.ok) {
         if (response.status === 404) {
           setError('Pedido no encontrado')

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Cache de 60 segundos
+export const revalidate = 60
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ cliente: string }> }
 ) {
   try {
-    console.log('🔍 API /tienda/[cliente] called')
     const { cliente } = await params
-    console.log('🔍 Cliente parameter:', cliente)
     
     // Buscar la tienda por slug o ID (sin filtrar por storeActive)
     const storeSettings = await prisma.storeSettings.findFirst({
@@ -96,15 +97,6 @@ export async function GET(
       )
     }
 
-    console.log('🔍 Store settings from DB:', {
-      id: storeSettings.id,
-      storeName: storeSettings.storeName,
-      bannerImage: storeSettings.bannerImage,
-      profileImage: storeSettings.profileImage,
-      enableBusinessHours: storeSettings.enableBusinessHours,
-      unifiedSchedule: storeSettings.unifiedSchedule
-    })
-
     // Parsear campos JSON
     const parsedStoreInfo = {
       ...storeSettings,
@@ -137,18 +129,11 @@ export async function GET(
       })() : {}
     }
 
-    console.log('🔍 Store images:', {
-      bannerImage: storeSettings.bannerImage,
-      profileImage: storeSettings.profileImage
-    })
+    // Headers de cache HTTP
+    const response = NextResponse.json(parsedStoreInfo)
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
 
-    console.log('🔍 Parsed store info:', {
-      enableBusinessHours: parsedStoreInfo.enableBusinessHours,
-      unifiedSchedule: parsedStoreInfo.unifiedSchedule,
-      serviceHours: parsedStoreInfo.serviceHours
-    })
-
-    return NextResponse.json(parsedStoreInfo)
+    return response
   } catch (error) {
     console.error('Error loading store info:', error)
     return NextResponse.json(

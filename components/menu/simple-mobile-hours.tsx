@@ -39,8 +39,15 @@ interface SimpleMobileHoursProps {
 
 export function SimpleMobileHours({ isOpen, onClose, storeInfo, isOpenNow }: SimpleMobileHoursProps) {
   const [parsedSchedule, setParsedSchedule] = useState<any>(null)
+  const [currentDay, setCurrentDay] = useState<number | null>(null)
 
   useEffect(() => {
+    // Verificar que estamos en el cliente antes de manipular document
+    if (typeof window === 'undefined') return
+
+    // Establecer el día actual solo en el cliente
+    setCurrentDay(new Date().getDay())
+
     // Prevenir scroll del body cuando el modal está abierto
     if (isOpen) {
       document.body.classList.add('modal-open')
@@ -119,11 +126,6 @@ export function SimpleMobileHours({ isOpen, onClose, storeInfo, isOpenNow }: Sim
   const dayKeys = [
     'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
   ]
-
-  const getCurrentDay = () => {
-    const now = new Date()
-    return now.getDay() // 0 = Domingo, 1 = Lunes, etc.
-  }
 
   const getStatusColor = (isOpen: boolean) => {
     return isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -249,7 +251,7 @@ export function SimpleMobileHours({ isOpen, onClose, storeInfo, isOpenNow }: Sim
                 
                 {dayKeys.map((dayKey, index) => {
                   const daySchedule = parsedSchedule[dayKey]
-                  const isToday = index === getCurrentDay()
+                  const isToday = currentDay !== null && index === currentDay
                   
                   return (
                     <div 

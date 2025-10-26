@@ -81,9 +81,13 @@ export default function MobileCustomerMenuPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [mounted, setMounted] = useState(false)
+  const [currentDay, setCurrentDay] = useState<number | null>(null)
 
   // Bloquear scroll del body cuando hay modales abiertos
   useEffect(() => {
+    // Verificar que estamos en el cliente antes de manipular document
+    if (typeof window === 'undefined') return
+
     if (cart.length > 0) {
       document.body.style.overflow = 'hidden'
     } else {
@@ -97,6 +101,7 @@ export default function MobileCustomerMenuPage() {
 
   useEffect(() => {
     setMounted(true)
+    setCurrentDay(new Date().getDay())
     loadStoreData()
   }, [clienteId])
 

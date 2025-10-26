@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Cache de 60 segundos
+export const revalidate = 60
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ cliente: string }> }
@@ -120,7 +123,11 @@ export async function GET(
         }))
       }))
 
-    return NextResponse.json(categoriesWithProducts)
+    // Headers de cache HTTP
+    const response = NextResponse.json(categoriesWithProducts)
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
+
+    return response
   } catch (error) {
     console.error('Error loading categories:', error)
     return NextResponse.json(

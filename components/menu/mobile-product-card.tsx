@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Plus, 
-  Minus, 
-  Star, 
+import {
+  Plus,
+  Minus,
+  Star,
   Heart,
   ShoppingCart,
   Clock,
@@ -74,75 +75,78 @@ export function MobileProductCard({
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
-        {/* Imagen del producto */}
-        <div 
-          className="relative h-48 bg-gray-100 cursor-pointer group"
+      <div className="bg-white rounded-3xl shadow-md border-0 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+        {/* Imagen del producto - MEJORADA */}
+        <div
+          className="relative h-52 bg-gradient-to-br from-gray-100 to-gray-200 cursor-pointer overflow-hidden"
           onClick={() => setShowModal(true)}
         >
           {product.imageUrl ? (
-            <img
+            <Image
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              sizes="(max-width: 640px) 100vw, 50vw"
+              loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-              <span className="text-4xl opacity-50">🍽️</span>
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <span className="text-5xl opacity-30">🍽️</span>
             </div>
           )}
-          
-          {/* Badges superpuestos */}
+
+          {/* Badges superpuestos - MEJORADOS */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {hasDiscount && (
-              <Badge className="bg-red-500 text-white text-xs font-bold px-2 py-1">
+              <Badge className="bg-red-500 text-white text-xs font-bold px-2.5 py-1.5 shadow-lg">
                 -{discountPercentage}%
               </Badge>
             )}
             {product.category && (
-              <Badge variant="secondary" className="text-xs bg-white/90 text-gray-700">
+              <Badge variant="secondary" className="text-xs bg-white/95 text-gray-700 backdrop-blur-sm shadow-md">
                 {product.category.name}
               </Badge>
             )}
           </div>
-          
-          {/* Botón de favorito */}
+
+          {/* Botón de favorito - MEJORADO */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               setIsLiked(!isLiked)
             }}
-            className="absolute top-3 right-3 p-2 bg-white/90 rounded-full shadow-sm hover:bg-white transition-colors"
+            className="absolute top-3 right-3 p-2.5 bg-white/95 rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all duration-200 backdrop-blur-sm"
           >
-            <Heart 
+            <Heart
               className={`w-4 h-4 ${
                 isLiked ? 'text-red-500 fill-current' : 'text-gray-400'
-              }`} 
+              }`}
             />
           </button>
         </div>
 
-        {/* Información del producto */}
+        {/* Información del producto - MEJORADA */}
         <div className="p-4">
           {/* Nombre y descripción */}
           <div className="mb-3">
-            <h3 
-              className="font-semibold text-gray-900 text-base mb-1 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
+            <h3
+              className="font-bold text-gray-900 text-base mb-1.5 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors leading-snug"
               onClick={() => setShowModal(true)}
             >
               {product.name}
             </h3>
             {product.description && (
-              <p className="text-sm text-gray-600 line-clamp-2">
+              <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             )}
           </div>
 
-          {/* Precio */}
+          {/* Precio - MEJORADO */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-xl font-bold text-gray-900">
                 ${product.price.toFixed(2)}
               </span>
               {hasDiscount && (
@@ -151,58 +155,58 @@ export function MobileProductCard({
                 </span>
               )}
             </div>
-            
+
             {/* Indicador de variantes */}
             {product.variants && product.variants.length > 0 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-gray-300">
                 {product.variants.length} opciones
               </Badge>
             )}
           </div>
 
-          {/* Botones de acción */}
+          {/* Botones de acción - MEJORADOS */}
           {cartQuantity > 0 ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 bg-gray-50 rounded-full px-3 py-1.5">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleQuantityChange(cartQuantity - 1)}
-                  className="w-8 h-8 p-0 rounded-full"
+                  className="w-8 h-8 p-0 rounded-full hover:bg-gray-200 transition-colors"
                 >
                   <Minus className="w-4 h-4" />
                 </Button>
-                
-                <span className="text-sm font-medium text-gray-900 min-w-[20px] text-center">
+
+                <span className="text-sm font-bold text-gray-900 min-w-[24px] text-center">
                   {cartQuantity}
                 </span>
-                
+
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleQuantityChange(cartQuantity + 1)}
-                  className="w-8 h-8 p-0 rounded-full"
+                  className="w-8 h-8 p-0 rounded-full hover:bg-gray-200 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowModal(true)}
-                className="text-xs px-3 py-1.5 h-8"
+                className="text-xs px-4 py-2 h-9 rounded-full font-semibold hover:bg-gray-50 transition-all duration-200"
               >
-                Ver opciones
+                Ver detalles
               </Button>
             </div>
           ) : (
             <Button
               onClick={handleAddToCart}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex items-center justify-center gap-2"
+              className="w-full h-12 bg-black hover:bg-gray-900 text-white font-semibold rounded-full flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              <ShoppingCart className="w-4 h-4" />
-              Agregar al carrito
+              <Plus className="w-5 h-5" />
+              Agregar
             </Button>
           )}
         </div>

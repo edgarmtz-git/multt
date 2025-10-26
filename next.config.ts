@@ -168,7 +168,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 
   // Configuración de react strict mode
-  reactStrictMode: true,
+  // Deshabilitado en desarrollo para mejor performance
+  reactStrictMode: process.env.NODE_ENV === 'production',
 };
 
 // Configuración de Sentry
