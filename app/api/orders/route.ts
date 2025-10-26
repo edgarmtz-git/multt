@@ -92,7 +92,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
           customerEmail: customerEmail || null,
           customerWhatsApp,
           deliveryMethod,
-          address: address || null,
+          address: address || undefined,
           paymentMethod,
           amountPaid: amountPaid || null,
           change: change || null,
