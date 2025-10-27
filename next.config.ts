@@ -150,7 +150,7 @@ const nextConfig: NextConfig = {
 
   // Configuración de TypeScript
   typescript: {
-    ignoreBuildErrors: true, // Temporarily disabled for visual work
+    ignoreBuildErrors: true, // Will fix remaining 25 errors after schema restoration
   },
 
   // Configuración de ESLint

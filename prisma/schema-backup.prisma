@@ -1,0 +1,347 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  IN_DELIVERY
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+enum DeliveryType {
+  FIXED
+  DISTANCE
+  ZONES
+  MANUAL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  company   String?
+  avatar    String?
+  role      UserRole @default(CLIENT)
+  isActive  Boolean  @default(true)
+  isSuspended Boolean @default(false)
+  suspensionReason String?
+  suspendedAt DateTime?
+  lastLoginAt DateTime?
+  loginAttempts Int @default(0)
+  lockedUntil DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  products     Product[]
+  categories   Category[]
+  orders       Order[]
+  storeSettings StoreSettings?
+  auditLogs    AuditLog[]
+  invitations  Invitation[]
+  deliveryZones DeliveryZone[]
+
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  trackQuantity Boolean @default(false)
+  hasVariants Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  // Relaciones
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories  CategoryProduct[]
+  variants    ProductVariant[]
+  options     ProductOption[]
+  images      ProductImage[]
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  // Relaciones
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products   CategoryProduct[]
+
+  @@map("categories")
+}
+
+model CategoryProduct {
+  id         String @id @default(cuid())
+  categoryId String
+  productId  String
+
+  // Relaciones
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, productId])
+  @@map("category_products")
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  name      String
+  price     Float
+  isActive  Boolean @default(true)
+  productId String
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model ProductOption {
+  id        String  @id @default(cuid())
+  name      String
+  required  Boolean @default(false)
+  maxSelections Int @default(1)
+  productId String
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  choices ProductOptionChoice[]
+
+  @@map("product_options")
+}
+
+model ProductOptionChoice {
+  id        String  @id @default(cuid())
+  name      String
+  price     Float
+  isActive  Boolean @default(true)
+  optionId  String
+
+  // Relaciones
+  option ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@map("product_option_choices")
+}
+
+model ProductImage {
+  id        String @id @default(cuid())
+  url       String
+  alt       String?
+  order     Int    @default(0)
+  productId String
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  status          OrderStatus @default(PENDING)
+  total           Float
+  subtotal        Float?
+  deliveryFee     Float?
+  customerName    String
+  customerEmail   String?
+  customerWhatsApp String
+  deliveryMethod  String      @default("pickup") // 'pickup', 'delivery'
+  address         Json?       // JSON object for address details
+  paymentMethod   String      @default("cash") // 'cash', 'transfer'
+  amountPaid      Float?
+  change          Float?
+  notes           String?
+  trackingUrl     String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userId          String
+
+  // Relaciones
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  quantity    Int
+  price       Float
+  variantName String?
+  orderId     String
+  productId   String
+  variantId   String?
+
+  // Relaciones
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+  options OrderItemOption[]
+
+  @@map("order_items")
+}
+
+model OrderItemOption {
+  id          String @id @default(cuid())
+  optionName  String
+  choiceName  String
+  price       Float
+  quantity    Int    @default(1)
+  orderItemId String
+
+  // Relaciones
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@map("order_item_options")
+}
+
+model StoreSettings {
+  id                        String  @id @default(cuid())
+  storeName                 String
+  storeSlug                 String  @unique
+  country                   String  @default("Mexico")
+  language                  String  @default("es")
+  currency                  String  @default("MXN")
+  distanceUnit              String  @default("km")
+  mapProvider               String? @default("GOOGLE")
+  googleMapsApiKey          String?
+  taxRate                   Float?
+  taxMethod                 String  @default("included")
+  enableBusinessHours       Boolean @default(false)
+  disableCheckoutOutsideHours Boolean @default(false)
+  deliveryEnabled           Boolean @default(false)
+  useBasePrice              Boolean @default(false)
+  baseDeliveryPrice         Float?
+  baseDeliveryThreshold    Float?
+  paymentsEnabled           Boolean @default(true)
+  storeActive               Boolean @default(true)
+  passwordProtected         Boolean @default(false)
+  whatsappMainNumber        String?
+  phoneNumber               String?
+  cashPaymentEnabled        Boolean @default(false)
+  bankTransferEnabled       Boolean @default(false)
+  bankName                  String?
+  accountNumber             String?
+  accountHolder             String?
+  clabe                     String?
+  transferInstructions      String?
+  paymentInstructions       String?
+  cashPaymentInstructions   String?
+  deliveryCalculationMethod String? // 'distance', 'zones', 'manual'
+  pricePerKm                Float?
+  minDeliveryFee            Float?
+  maxDeliveryDistance       Float?
+  manualDeliveryMessage     String?
+  unifiedSchedule           String? // JSON string
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  userId                    String  @unique
+
+  // Relaciones
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveryZones DeliveryZone[]
+
+  @@map("store_settings")
+}
+
+model DeliveryZone {
+  id                    String      @id @default(cuid())
+  name                  String
+  type                  DeliveryType @default(FIXED)
+  fixedPrice            Float?
+  freeDeliveryThreshold Float?
+  estimatedTime         Int?
+  description           String?
+  isActive              Boolean     @default(true)
+  order                 Int         @default(0)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  userId                String
+  storeSettingsId       String?
+
+  // Relaciones
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeSettings StoreSettings? @relation(fields: [storeSettingsId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_zones")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  resource   String
+  resourceId String?
+  details    String?  // JSON string
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  userId     String
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+model Invitation {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  slug            String            @unique
+  clientName      String?
+  clientEmail     String?
+  clientPhone     String?
+  status          InvitationStatus  @default(PENDING)
+  expiresAt       DateTime?
+  usedAt          DateTime?
+  serviceStart    DateTime?
+  serviceRenewal  DateTime?
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userId          String
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("invitations")
+}
