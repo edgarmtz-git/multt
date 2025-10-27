@@ -13,29 +13,23 @@ export async function GET(
     }
 
     // Buscar la tienda por slug e incluir zonas activas
-    const store = await prisma.user.findFirst({
+    const storeSettings = await prisma.storeSettings.findFirst({
       where: {
-        storeSettings: {
-          storeSlug: slug
-        }
+        storeSlug: slug
       },
       include: {
-        storeSettings: {
-          include: {
-            deliveryZones: {
-              where: { isActive: true },
-              orderBy: { order: 'asc' }
-            }
-          }
+        deliveryZones: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' }
         }
       }
     })
 
-    if (!store || !store.storeSettings) {
+    if (!storeSettings) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
     }
 
-    const deliveryZones = store.storeSettings.deliveryZones.map((zone: any) => ({
+    const deliveryZones = storeSettings.deliveryZones.map((zone: any) => ({
       id: zone.id,
       name: zone.name,
       type: zone.type,

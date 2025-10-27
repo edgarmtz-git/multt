@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -71,6 +71,32 @@ export default function DeliveryAddressSection({
 
   // Solo mostrar si es delivery
   if (deliveryMethod !== 'delivery') return null
+
+  // ✅ IMPORTANTE: Recalcular costo de envío cuando cambie el subtotal
+  useEffect(() => {
+    if (selectedZone && calculationMethod === 'zones') {
+      const zone = deliveryZones.find(z => z.id === selectedZone)
+      if (zone) {
+        // Recalcular costo basado en umbral de envío gratis
+        let cost = zone.fixedPrice || 0
+        if (zone.freeDeliveryThreshold && subtotal >= zone.freeDeliveryThreshold) {
+          cost = 0
+        }
+        
+        // Solo actualizar si el costo cambió
+        if (cost !== calculatedDeliveryFee) {
+          setCalculatedDeliveryFee(cost)
+          setDeliveryCalculation({
+            method: 'zones',
+            zone: zone.name,
+            price: cost,
+            estimatedTime: zone.estimatedTime,
+            message: cost === 0 ? 'Envío gratis' : `Envío a ${zone.name}`
+          })
+        }
+      }
+    }
+  }, [subtotal, selectedZone, deliveryZones, calculationMethod, calculatedDeliveryFee])
 
   // Captura de ubicación GPS
   const handleGetLocation = async () => {

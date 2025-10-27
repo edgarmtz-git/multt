@@ -13,52 +13,43 @@ export async function GET(
     }
 
     // Buscar la tienda por slug
-    const store = await prisma.user.findFirst({
+    const storeSettings = await prisma.storeSettings.findFirst({
       where: {
-        storeSettings: {
-          storeSlug: slug
-        }
-      },
-      include: {
-        storeSettings: true
+        storeSlug: slug
       }
     })
 
-    if (!store) {
+    if (!storeSettings) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    }
-
-    if (!store.storeSettings) {
-      return NextResponse.json({ error: 'Store settings not found' }, { status: 404 })
     }
 
     // Formatear la respuesta con la información de la tienda
     const storeInfo = {
-      storeSlug: store.storeSettings.storeSlug,
-      storeName: store.storeSettings.storeName || 'Tienda',
-      whatsappMainNumber: store.storeSettings.whatsappMainNumber || '',
-      phoneNumber: store.storeSettings.phoneNumber || '',
-      deliveryEnabled: store.storeSettings.deliveryEnabled || false,
-      baseDeliveryPrice: store.storeSettings.baseDeliveryPrice || 0,
+      storeSlug: storeSettings.storeSlug,
+      storeName: storeSettings.storeName || 'Tienda',
+      whatsappMainNumber: storeSettings.whatsappMainNumber || '',
+      phoneNumber: storeSettings.phoneNumber || '',
+      deliveryEnabled: storeSettings.deliveryEnabled || false,
+      baseDeliveryPrice: storeSettings.baseDeliveryPrice || 0,
       // Configuración de método de cálculo de envío
-      deliveryCalculationMethod: store.storeSettings.deliveryCalculationMethod || 'manual',
-      pricePerKm: store.storeSettings.pricePerKm || 0,
-      minDeliveryFee: store.storeSettings.minDeliveryFee || 0,
-      maxDeliveryDistance: store.storeSettings.maxDeliveryDistance || 10,
-      manualDeliveryMessage: store.storeSettings.manualDeliveryMessage || 'El costo de envío se calculará al confirmar el pedido',
+      deliveryCalculationMethod: storeSettings.deliveryCalculationMethod || 'manual',
+      pricePerKm: storeSettings.pricePerKm || 0,
+      minDeliveryFee: storeSettings.minDeliveryFee || 0,
+      maxDeliveryDistance: storeSettings.maxDeliveryDistance || 10,
+      manualDeliveryMessage: storeSettings.manualDeliveryMessage || 'El costo de envío se calculará al confirmar el pedido',
       // Configuración de horarios
-      enableBusinessHours: store.storeSettings.enableBusinessHours || false,
-      unifiedSchedule: store.storeSettings.unifiedSchedule,
+      enableBusinessHours: storeSettings.enableBusinessHours || false,
+      unifiedSchedule: storeSettings.unifiedSchedule,
       // Configuración de pagos
-      cashPaymentEnabled: store.storeSettings.cashPaymentEnabled || false,
-      bankTransferEnabled: store.storeSettings.bankTransferEnabled || false,
-      bankName: store.storeSettings.bankName || '',
-      accountNumber: store.storeSettings.accountNumber || '',
-      accountHolder: store.storeSettings.accountHolder || '',
-      clabe: store.storeSettings.clabe || '',
-      transferInstructions: store.storeSettings.transferInstructions || '',
-      paymentInstructions: store.storeSettings.paymentInstructions || '',
-      cashPaymentInstructions: store.storeSettings.cashPaymentInstructions || ''
+      cashPaymentEnabled: storeSettings.cashPaymentEnabled || false,
+      bankTransferEnabled: storeSettings.bankTransferEnabled || false,
+      bankName: storeSettings.bankName || '',
+      accountNumber: storeSettings.accountNumber || '',
+      accountHolder: storeSettings.accountHolder || '',
+      clabe: storeSettings.clabe || '',
+      transferInstructions: storeSettings.transferInstructions || '',
+      paymentInstructions: storeSettings.paymentInstructions || '',
+      cashPaymentInstructions: storeSettings.cashPaymentInstructions || ''
     }
 
     console.log('🏪 Store API response:', { slug, storeInfo })
