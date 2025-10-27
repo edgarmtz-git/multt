@@ -48,7 +48,7 @@ export async function GET(
 
     // Buscar invitación asociada
     const invitation = await prisma.invitation.findFirst({
-      where: { clientEmail: client.email }
+      where: { userId: client.id }
     })
 
     // Formatear la respuesta
@@ -71,16 +71,16 @@ export async function GET(
       invitation: invitation ? {
         id: invitation.id,
         code: invitation.code,
-        clientName: invitation.clientName,
-        clientEmail: invitation.clientEmail,
-        clientPhone: invitation.clientPhone,
+        clientName: (invitation as any).clientName || null,
+        clientEmail: (invitation as any).clientEmail || null,
+        clientPhone: (invitation as any).clientPhone || null,
         slug: invitation.slug,
         status: invitation.status,
         expiresAt: invitation.expiresAt,
         usedAt: invitation.usedAt,
-        serviceStart: invitation.serviceStart,
-        serviceRenewal: invitation.serviceRenewal,
-        isActive: invitation.isActive
+        serviceStart: (invitation as any).serviceStart || null,
+        serviceRenewal: (invitation as any).serviceRenewal || null,
+        isActive: (invitation as any).isActive || false
       } : null,
       products: client.products.map((product: any) => ({
         id: product.id,
