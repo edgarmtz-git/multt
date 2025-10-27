@@ -61,81 +61,101 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Crear algunas categorías de ejemplo
-    const categories = await Promise.all([
-      prisma.category.create({
-        data: {
-          userId: client.id,
-          name: 'Platillos principales',
-          description: 'Nuestros mejores platillos',
-          isActive: true,
-          isVisibleInStore: true,
-          order: 1
-        }
-      }),
-      prisma.category.create({
-        data: {
-          userId: client.id,
-          name: 'Bebidas',
-          description: 'Bebidas refrescantes',
-          isActive: true,
-          isVisibleInStore: true,
-          order: 2
-        }
-      }),
-      prisma.category.create({
-        data: {
-          userId: client.id,
-          name: 'Postres',
-          description: 'Deliciosos postres',
-          isActive: true,
-          isVisibleInStore: true,
-          order: 3
-        }
-      })
-    ])
+    // Crear UNA categoría de ejemplo
+    const category = await prisma.category.create({
+      data: {
+        userId: client.id,
+        name: 'Pizzas',
+        description: 'Nuestras deliciosas pizzas artesanales',
+        isActive: true,
+        isVisibleInStore: true,
+        order: 1,
+        color: '#FF6B6B'
+      }
+    })
 
-    // Crear algunos productos de ejemplo
-    const products = await Promise.all([
-      prisma.product.create({
-        data: {
-          userId: client.id,
-          name: 'Tacos al Pastor',
-          description: 'Deliciosos tacos con carne al pastor',
-          price: 45.00,
-          stock: 100,
-          isActive: true,
-          trackQuantity: false,
-          allowPickup: true,
-          allowShipping: true,
-          categoryProducts: {
-            create: {
-              categoryId: categories[0].id,
-              order: 1
+    // Crear UN producto con variante y opción
+    const product = await prisma.product.create({
+      data: {
+        userId: client.id,
+        name: 'Pizza Margarita',
+        description: 'Pizza clásica con tomate, mozzarella y albahaca fresca',
+        price: 150.00,
+        stock: 50,
+        isActive: true,
+        hasVariants: true,
+        variantType: 'size',
+        variantLabel: 'Tamaño',
+        trackQuantity: false,
+        allowPickup: true,
+        allowShipping: true,
+        categoryProducts: {
+          create: {
+            categoryId: category.id,
+            order: 1
+          }
+        },
+        // Crear 1 variante (Tamaño)
+        variants: {
+          create: [
+            {
+              name: 'Tamaño',
+              value: 'Chica',
+              price: 120.00,
+              isActive: true
+            },
+            {
+              name: 'Tamaño',
+              value: 'Mediana',
+              price: 150.00,
+              isActive: true
+            },
+            {
+              name: 'Tamaño',
+              value: 'Grande',
+              price: 180.00,
+              isActive: true
+            }
+          ]
+        },
+        // Crear 1 opción (Ingredientes extras)
+        options: {
+          create: {
+            name: 'Ingredientes extras',
+            required: false,
+            maxSelections: 3,
+            choices: {
+              create: [
+                {
+                  name: 'Extra queso',
+                  price: 20.00,
+                  isActive: true,
+                  order: 1
+                },
+                {
+                  name: 'Pepperoni',
+                  price: 25.00,
+                  isActive: true,
+                  order: 2
+                },
+                {
+                  name: 'Champiñones',
+                  price: 15.00,
+                  isActive: true,
+                  order: 3
+                },
+                {
+                  name: 'Aceitunas',
+                  price: 15.00,
+                  isActive: true,
+                  order: 4
+                }
+              ]
             }
           }
         }
-      }),
-      prisma.product.create({
-        data: {
-          userId: client.id,
-          name: 'Agua de Horchata',
-          description: 'Refrescante agua de horchata',
-          price: 25.00,
-          stock: 50,
-          isActive: true,
-          trackQuantity: false,
-          allowPickup: true,
-          allowShipping: true,
-          categoryProducts: {
-            create: {
-              categoryId: categories[1].id,
-              order: 1
-            }
-          }
-        }
-      })
-    ])
+      }
+    })
 
     return NextResponse.json({
       success: true,
@@ -152,8 +172,19 @@ export async function POST(request: NextRequest) {
           storeSlug: store.storeSlug,
           storeUrl: `/tienda/${store.storeSlug}`
         },
-        categoriesCreated: categories.length,
-        productsCreated: products.length
+        category: {
+          name: category.name,
+          id: category.id
+        },
+        product: {
+          name: product.name,
+          id: product.id,
+          hasVariants: true,
+          variantsCount: 3,
+          hasOptions: true,
+          optionsCount: 1,
+          optionChoicesCount: 4
+        }
       }
     })
 
