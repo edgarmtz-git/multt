@@ -34,6 +34,7 @@ interface CartItem {
   name: string
   quantity: number
   price: number
+  totalPrice?: number
   variantName?: string
   variantId?: string
   options?: any[]
@@ -510,6 +511,7 @@ export default function SingleCardCheckout({
                   </div>
                   <Input
                     id="customerWhatsApp"
+                    type="tel"
                     value={customerWhatsApp}
                     onChange={(e) => setCustomerWhatsApp(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     placeholder="10 dígitos"
@@ -835,7 +837,7 @@ export default function SingleCardCheckout({
                       </div>
                     )}
                   </div>
-                  <p className="font-medium">${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</p>
+                  <p className="font-medium">${(item.totalPrice || 0).toFixed(2)}</p>
                 </div>
               ))}
             </div>

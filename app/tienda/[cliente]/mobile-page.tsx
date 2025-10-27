@@ -238,6 +238,29 @@ export default function MobileCustomerMenuPage() {
     }
   }
 
+  // Función para calcular el precio total de un item del carrito
+  const calculateItemTotalPrice = (product: Product, quantity: number, selectedVariants: any[], selectedOptions: any) => {
+    // Si hay variantes seleccionadas, usar el precio de la variante como base
+    let basePrice = product.price
+    
+    if (selectedVariants.length > 0) {
+      // Para variantes de tamaño, usar el precio de la variante como base
+      const variant = selectedVariants[0]
+      basePrice = variant.price
+    }
+    
+    let total = basePrice * quantity
+    
+    // Agregar precio de opciones adicionales (extras, toppings, etc.)
+    Object.values(selectedOptions).forEach((choices: any) => {
+      choices.forEach((choice: any) => {
+        total += choice.price * quantity
+      })
+    })
+    
+    return total
+  }
+
   const addToCart = (product: Product, quantity: number, selectedVariants: any[] = [], selectedOptions: any = {}) => {
     if (quantity <= 0) {
       return
@@ -254,7 +277,12 @@ export default function MobileCustomerMenuPage() {
         item.product.id === product.id &&
         JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants) &&
         JSON.stringify(item.selectedOptions) === JSON.stringify(selectedOptions)
-          ? { ...item, quantity: item.quantity + quantity, price: product.price, totalPrice: (item.quantity + quantity) * product.price }
+          ? { 
+              ...item, 
+              quantity: item.quantity + quantity, 
+              price: calculateItemTotalPrice(product, 1, selectedVariants, selectedOptions), 
+              totalPrice: calculateItemTotalPrice(product, item.quantity + quantity, selectedVariants, selectedOptions)
+            }
           : item
       ))
     } else {
@@ -263,8 +291,8 @@ export default function MobileCustomerMenuPage() {
         quantity,
         selectedVariants,
         selectedOptions,
-        price: product.price,
-        totalPrice: product.price * quantity
+        price: calculateItemTotalPrice(product, 1, selectedVariants, selectedOptions),
+        totalPrice: calculateItemTotalPrice(product, quantity, selectedVariants, selectedOptions)
       }
       setCart([...cart, newItem])
     }
@@ -291,7 +319,12 @@ export default function MobileCustomerMenuPage() {
       item.product.id === productId &&
       JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants) &&
       JSON.stringify(item.selectedOptions) === JSON.stringify(selectedOptions)
-        ? { ...item, quantity, totalPrice: quantity * item.product.price }
+        ? { 
+            ...item, 
+            quantity, 
+            price: calculateItemTotalPrice(item.product, 1, selectedVariants, selectedOptions),
+            totalPrice: calculateItemTotalPrice(item.product, quantity, selectedVariants, selectedOptions)
+          }
         : item
     ))
   }

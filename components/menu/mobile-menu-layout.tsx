@@ -304,6 +304,7 @@ export function MobileMenuLayout({
               name: item.product.name,
               quantity: item.quantity,
               price: item.price,
+              totalPrice: item.totalPrice,
               variantName: item.selectedVariants && item.selectedVariants.length > 0
                 ? item.selectedVariants[0].name
                 : undefined,

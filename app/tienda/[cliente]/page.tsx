@@ -292,6 +292,29 @@ export default function CustomerMenuPage() {
     }
   }
 
+  // Función para calcular el precio total de un item del carrito
+  const calculateItemTotalPrice = (product: Product, quantity: number, selectedVariants: ProductVariant[], selectedOptions: { [optionId: string]: ProductOptionChoice[] }) => {
+    // Si hay variantes seleccionadas, usar el precio de la variante como base
+    let basePrice = product.price
+    
+    if (selectedVariants.length > 0) {
+      // Para variantes de tamaño, usar el precio de la variante como base
+      const variant = selectedVariants[0]
+      basePrice = variant.price
+    }
+    
+    let total = basePrice * quantity
+    
+    // Agregar precio de opciones adicionales (extras, toppings, etc.)
+    Object.values(selectedOptions).forEach(choices => {
+      choices.forEach(choice => {
+        total += choice.price * quantity
+      })
+    })
+    
+    return total
+  }
+
   const addToCart = (product: Product, quantity: number = 1, selectedVariants: ProductVariant[] = [], selectedOptions: { [optionId: string]: ProductOptionChoice[] } = {}) => {
     // Verificar si la tienda está cerrada
     if (!isOpen) {
@@ -310,7 +333,12 @@ export default function CustomerMenuPage() {
         item.product.id === product.id &&
         JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants) &&
         JSON.stringify(item.selectedOptions) === JSON.stringify(selectedOptions)
-          ? { ...item, quantity: item.quantity + quantity, price: product.price, totalPrice: (item.quantity + quantity) * product.price }
+          ? { 
+              ...item, 
+              quantity: item.quantity + quantity, 
+              price: calculateItemTotalPrice(product, 1, selectedVariants, selectedOptions), 
+              totalPrice: calculateItemTotalPrice(product, item.quantity + quantity, selectedVariants, selectedOptions)
+            }
           : item
       ))
     } else {
@@ -319,8 +347,8 @@ export default function CustomerMenuPage() {
         quantity,
         selectedVariants,
         selectedOptions,
-        price: product.price,
-        totalPrice: product.price * quantity
+        price: calculateItemTotalPrice(product, 1, selectedVariants, selectedOptions),
+        totalPrice: calculateItemTotalPrice(product, quantity, selectedVariants, selectedOptions)
       }
       setCart([...cart, newItem])
     }
@@ -339,7 +367,7 @@ export default function CustomerMenuPage() {
 
   // Calcular totales del carrito
   const calculateCartTotals = () => {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const subtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0)
     const deliveryFee = storeInfo?.deliveryEnabled ? (storeInfo?.baseDeliveryPrice || 0) : 0
     const total = subtotal + deliveryFee
 
@@ -380,7 +408,12 @@ export default function CustomerMenuPage() {
       item.product.id === productId &&
       JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants) &&
       JSON.stringify(item.selectedOptions) === JSON.stringify(selectedOptions)
-        ? { ...item, quantity, totalPrice: quantity * item.product.price }
+        ? { 
+            ...item, 
+            quantity, 
+            price: calculateItemTotalPrice(item.product, 1, selectedVariants, selectedOptions),
+            totalPrice: calculateItemTotalPrice(item.product, quantity, selectedVariants, selectedOptions)
+          }
         : item
     ))
   }
@@ -1036,6 +1069,7 @@ export default function CustomerMenuPage() {
                     name: item.product.name,
                     quantity: item.quantity,
                     price: item.price || 0,
+                    totalPrice: item.totalPrice,
                     variantName,
                     variantId,
                     options

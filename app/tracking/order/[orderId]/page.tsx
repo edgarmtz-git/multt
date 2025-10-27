@@ -32,6 +32,10 @@ interface Order {
     quantity: number
     price: number
     variantName?: string
+    options?: Array<{
+      name: string
+      price: number
+    }>
   }>
 }
 
@@ -290,16 +294,31 @@ export default function OrderTrackingPage() {
           <CardContent>
             <div className="space-y-3">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <div>
+                <div key={item.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
                     <p className="font-medium">{item.productName}</p>
                     {item.variantName && (
                       <Badge variant="secondary" className="text-xs mt-1">
                         {item.variantName}
                       </Badge>
                     )}
+                    {item.options && item.options.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-700 mb-1">Extras:</p>
+                        <div className="space-y-1">
+                          {item.options.map((option, optIndex) => (
+                            <div key={optIndex} className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">• {option.name}</span>
+                              {option.price > 0 && (
+                                <span className="text-gray-500 font-medium">+${option.price.toFixed(2)}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right ml-4">
                     <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                     <p className="text-sm text-gray-600">{item.quantity}x ${item.price.toFixed(2)}</p>
                   </div>
