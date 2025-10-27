@@ -482,8 +482,8 @@ export async function getPaginatedProducts(
         }),
         ...(filters.search && {
           OR: [
-            { name: { contains: filters.search, // mode removed } },
-            { description: { contains: filters.search, // mode removed } }
+            { name: { contains: filters.search } },
+            { description: { contains: filters.search } }
           ]
         })
       }
