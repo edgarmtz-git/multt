@@ -67,10 +67,10 @@ export async function GET(
                       include: {
                         choices: {
                           include: {
-                            availability: true
+                            // availability removed
                           }
                         },
-                        availability: true
+                        // availability removed
                       }
                     }
                   }

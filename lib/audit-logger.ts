@@ -98,7 +98,7 @@ class AuditLogger {
           ipAddress: entry.ipAddress,
           userAgent: entry.userAgent,
           success: entry.success,
-          errorMessage: entry.errorMessage
+          // errorMessage removed - entry.errorMessage
         }
       })
 

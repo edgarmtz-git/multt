@@ -82,8 +82,8 @@ export async function getOptimizedProducts(
 
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } }
+      { name: { contains: search } },
+      { description: { contains: search } }
     ]
   }
 
@@ -305,8 +305,8 @@ export async function getOptimizedPublicProducts(
 
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } }
+      { name: { contains: search } },
+      { description: { contains: search } }
     ]
   }
 
@@ -333,7 +333,7 @@ export async function getOptimizedPublicProducts(
         select: {
           id: true,
           name: true,
-          isRequired: true,
+          required: true,
           type: true,
           choices: {
             select: {
@@ -482,8 +482,8 @@ export async function getPaginatedProducts(
         }),
         ...(filters.search && {
           OR: [
-            { name: { contains: filters.search, mode: 'insensitive' } },
-            { description: { contains: filters.search, mode: 'insensitive' } }
+            { name: { contains: filters.search, // mode removed } },
+            { description: { contains: filters.search, // mode removed } }
           ]
         })
       }

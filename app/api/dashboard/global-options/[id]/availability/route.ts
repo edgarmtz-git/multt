@@ -21,10 +21,10 @@ export async function GET(
         userId: session.user.id
       },
       include: {
-        availability: true,
+        // availability field removed,
         choices: {
           include: {
-            availability: true
+            // availability field removed
           },
           orderBy: { order: 'asc' }
         }

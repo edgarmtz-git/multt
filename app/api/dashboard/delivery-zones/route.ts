@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
         freeDeliveryThreshold: freeDeliveryThreshold ?? null,
         estimatedTime: estimatedTime ?? null,
         description: description ?? null,
+        userId: session.user.id,  // Requerido
         storeSettingsId: storeSettings.id
       }
     })

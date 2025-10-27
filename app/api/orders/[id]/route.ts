@@ -24,7 +24,7 @@ export async function GET(
         items: {
           include: {
             product: true,
-            variant: true,
+            // variant removed
             options: true
           }
         },

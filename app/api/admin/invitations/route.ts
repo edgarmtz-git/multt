@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
           slug,
           expiresAt,
           createdBy: session.user.id,
+          userId: session.user.id,  // Admin que crea la invitación
           status: 'PENDING'
         }
       })

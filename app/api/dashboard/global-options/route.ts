@@ -19,11 +19,11 @@ export async function GET() {
           include: {
             availability: true
           },
-          orderBy: { order: 'asc' }
+          orderBy: { name: 'asc' }
         },
         availability: true
       },
-      orderBy: { order: 'asc' }
+      orderBy: { name: 'asc' }
     })
 
     return NextResponse.json(globalOptions)
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
             include: {
               availability: true
             },
-            orderBy: { order: 'asc' }
+            orderBy: { name: 'asc' }
           },
           availability: true
         }

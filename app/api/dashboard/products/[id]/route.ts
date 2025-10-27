@@ -45,8 +45,7 @@ export async function GET(
             choices: {
               orderBy: { order: 'asc' }
             }
-          },
-          orderBy: { order: 'asc' }
+          }
         },
         productGlobalOptions: {
           include: {
@@ -57,12 +56,9 @@ export async function GET(
                 }
               }
             }
-          },
-          orderBy: { order: 'asc' }
+          }
         },
-        images: {
-          orderBy: { order: 'asc' }
-        }
+        images: true
       }
     })
 

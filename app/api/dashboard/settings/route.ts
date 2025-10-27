@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getUserSlug } from '@/lib/get-user-slug'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
@@ -400,7 +401,7 @@ export async function PUT(request: NextRequest) {
         storeName: storeName || 'Mi Tienda',
         storeSlug: storeSlug || `tienda-${Date.now()}`,
         email,
-        address: address ? JSON.stringify(address) : null,
+        address: address ? JSON.stringify(address) : Prisma.JsonNull,
         whatsappMainNumber,
         phoneNumber,
         country: country || 'Mexico',
@@ -450,7 +451,7 @@ export async function PUT(request: NextRequest) {
         storeName: storeName || 'Mi Tienda',
         storeSlug: storeSlug || `tienda-${Date.now()}`,
         email,
-        address: address ? JSON.stringify(address) : null,
+        address: address ? JSON.stringify(address) : Prisma.JsonNull,
         whatsappMainNumber,
         phoneNumber,
         country: country || 'Mexico',
