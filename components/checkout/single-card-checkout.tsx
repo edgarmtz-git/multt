@@ -439,7 +439,12 @@ export default function SingleCardCheckout({
           item.options.forEach((option: any) => {
             const optName = option.name || 'Opción'
             const optValue = option.value || option.choiceName || 'N/A'
-            message += `  - ${optName}: ${optValue}\n`
+            const optPrice = option.price || 0
+            if (optPrice > 0) {
+              message += `  - ${optName}: ${optValue} (+$${optPrice.toFixed(2)})\n`
+            } else {
+              message += `  - ${optName}: ${optValue}\n`
+            }
           })
         }
       })
@@ -683,7 +688,7 @@ export default function SingleCardCheckout({
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                     <Input
                       id="cashAmount"
-                      type="number"
+                      type="tel"
                       value={cashAmount}
                       onChange={(e) => setCashAmount(e.target.value)}
                       placeholder="0.00"
