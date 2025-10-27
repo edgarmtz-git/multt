@@ -63,6 +63,11 @@ async function main() {
   // ✅ Validaciones activadas - Todos los errores de TypeScript corregidos!
   const validations = [
     {
+      name: 'Prisma Client',
+      command: 'pnpm prisma generate',
+      description: 'Generando cliente de Prisma...'
+    },
+    {
       name: 'TypeScript',
       command: 'pnpm tsc --noEmit',
       description: 'Verificando errores de tipos TypeScript...'
