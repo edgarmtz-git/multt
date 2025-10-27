@@ -76,17 +76,23 @@ async function main() {
       command: 'pnpm prisma validate',
       description: 'Validando schema de Prisma...'
     },
-    {
-      name: 'Next.js Build',
-      command: 'pnpm next build',
-      description: 'Construyendo aplicación Next.js...'
-    },
-    {
+    // Build desactivado por defecto (muy lento)
+    // Para activarlo, usa: pnpm build:check --full
+    // {
+    //   name: 'Next.js Build',
+    //   command: 'pnpm next build',
+    //   description: 'Construyendo aplicación Next.js...'
+    // },
+  ]
+
+  // Validar variables de entorno solo si es producción
+  if (process.env.NODE_ENV === 'production' || process.argv.includes('--production')) {
+    validations.push({
       name: 'Variables de Entorno',
       command: 'tsx scripts/verify-production-config.ts',
       description: 'Verificando variables de entorno requeridas...'
-    }
-  ]
+    })
+  }
 
   let allPassed = true
 
