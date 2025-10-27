@@ -127,3 +127,6 @@ service-account.json
 # Solo CLAUDE.md y README.md se suben al repo
 .docs/
 *.md.local
+
+# Scripts obsoletos archivados (para referencia local)
+.scripts-archive/
