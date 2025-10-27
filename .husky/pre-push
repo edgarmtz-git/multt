@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo ""
+echo "🛡️  Pre-push validation running..."
+echo ""
+
+# Ejecutar validaciones completas
+pnpm run validate:pre-push
+
+# Si falla, bloquear el push
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Pre-push validation failed!"
+  echo "⛔ Push blocked to protect production"
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "✅ All validations passed - proceeding with push"
+echo ""

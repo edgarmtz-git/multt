@@ -21,7 +21,15 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "prepare": "husky",
+    "dev:clean": "rm -rf .next && pnpm dev",
+    "build:check": "pnpm run validate:pre-push",
+    "db:seed:clean": "tsx scripts/seed-clean.ts",
+    "validate:pre-push": "tsx scripts/pre-push-validation.ts",
+    "validate:env": "tsx scripts/verify-production-config.ts",
+    "validate:types": "tsc --noEmit",
+    "validate:prisma": "prisma validate && prisma generate"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -94,6 +102,7 @@
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/ui": "^4.0.3",
+    "husky": "^9.1.7",
     "jsdom": "^27.0.0",
     "tailwindcss": "^4.1.6",
     "tsx": "^4.20.5",
