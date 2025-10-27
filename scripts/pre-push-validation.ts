@@ -60,27 +60,14 @@ async function main() {
   console.log('║  🚀 VALIDACIÓN PRE-PUSH A PRODUCCIÓN                     ║')
   console.log('╚═══════════════════════════════════════════════════════════╝')
 
-  console.log('\n⚠️  PRE-PUSH VALIDATION SIMPLIFICADA')
-  console.log('   Las validaciones completas se ejecutan en Vercel durante el build')
-  console.log('   Para validar localmente: pnpm validate:types\n')
-
-  // Validaciones desactivadas temporalmente
-  // Hay errores de TypeScript pendientes de corregir relacionados con Prisma schema
-  // Una vez corregidos, descomentar estas validaciones:
-  //
-  // const validations = [
-  //   {
-  //     name: 'TypeScript',
-  //     command: 'pnpm tsc --noEmit',
-  //     description: 'Verificando errores de tipos TypeScript...'
-  //   },
-  // ]
-
-  const validations: Array<{
-    name: string
-    command: string
-    description: string
-  }> = []
+  // ✅ Validaciones activadas - Todos los errores de TypeScript corregidos!
+  const validations = [
+    {
+      name: 'TypeScript',
+      command: 'pnpm tsc --noEmit',
+      description: 'Verificando errores de tipos TypeScript...'
+    }
+  ]
 
   if (validations.length === 0) {
     console.log('   ℹ️  Sin validaciones configuradas')
