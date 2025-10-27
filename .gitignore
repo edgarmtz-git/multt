@@ -118,3 +118,12 @@ sessions/
 credentials.json
 secrets.json
 service-account.json
+
+# ============================================
+# 📚 DOCUMENTACIÓN LOCAL (NO SUBIR A GIT)
+# ============================================
+# Archivos .md de documentación técnica
+# Se mantienen localmente para referencia
+# Solo CLAUDE.md y README.md se suben al repo
+.docs/
+*.md.local
