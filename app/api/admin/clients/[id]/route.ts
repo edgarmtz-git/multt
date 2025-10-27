@@ -71,16 +71,16 @@ export async function GET(
       invitation: invitation ? {
         id: invitation.id,
         code: invitation.code,
-        clientName: (invitation as any).clientName || null,
-        clientEmail: (invitation as any).clientEmail || null,
-        clientPhone: (invitation as any).clientPhone || null,
+        clientName: invitation.clientName,
+        clientEmail: invitation.clientEmail,
+        clientPhone: invitation.clientPhone,
         slug: invitation.slug,
         status: invitation.status,
         expiresAt: invitation.expiresAt,
         usedAt: invitation.usedAt,
-        serviceStart: (invitation as any).serviceStart || null,
-        serviceRenewal: (invitation as any).serviceRenewal || null,
-        isActive: (invitation as any).isActive || false
+        serviceStart: invitation.serviceStart,
+        serviceRenewal: invitation.serviceRenewal,
+        isActive: invitation.isActive
       } : null,
       products: client.products.map((product: any) => ({
         id: product.id,
