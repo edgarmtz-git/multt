@@ -10,111 +10,100 @@ export async function GET(
 ) {
   try {
     const { cliente } = await params
-    
-    // Buscar la tienda por slug o ID (sin filtrar por storeActive)
-    const storeSettings = await prisma.storeSettings.findFirst({
+
+    // Buscar la tienda por slug
+    const store = await prisma.storeSettings.findFirst({
       where: {
-        OR: [
-          { storeSlug: cliente },
-          { id: cliente }
-        ]
+        storeSlug: cliente
       },
-      select: {
-        id: true,
-        storeName: true,
-        storeSlug: true,
-        whatsappMainNumber: true,
-        country: true,
-        currency: true,
-        deliveryEnabled: true,
-        useBasePrice: true,
-        baseDeliveryPrice: true,
-        baseDeliveryThreshold: true,
-        enableBusinessHours: true,
-        storeActive: true,
-        passwordProtected: true,
-        unifiedSchedule: true,
-        // Campos para validar estado
+      include: {
         user: {
           select: {
-            isSuspended: true,
-            isActive: true
+            isActive: true,
+            isSuspended: true
           }
         }
       }
     })
 
-    // Tienda no existe
-    if (!storeSettings) {
+    if (!store) {
       return NextResponse.json(
         { error: 'Tienda no encontrada' },
         { status: 404 }
       )
     }
 
-    // Usuario suspendido
-    if (storeSettings.user.isSuspended) {
+    // Verificar usuario activo
+    if (!store.user.isActive || store.user.isSuspended) {
       return NextResponse.json(
-        {
-          error: 'Tienda no disponible',
-          reason: 'suspended',
-          storeName: storeSettings.storeName
-        },
+        { error: 'Tienda no disponible' },
         { status: 403 }
       )
     }
 
-    // Usuario inactivo
-    if (!storeSettings.user.isActive) {
-      return NextResponse.json(
-        {
-          error: 'Tienda no disponible',
-          reason: 'inactive',
-          storeName: storeSettings.storeName
-        },
-        { status: 403 }
-      )
-    }
+    // Buscar categorías activas
+    const categories = await prisma.category.findMany({
+      where: {
+        userId: store.userId,
+        isActive: true,
+        isVisibleInStore: true
+      },
+      orderBy: {
+        order: 'asc'
+      }
+    })
 
-    // Tienda inactiva
-    if (!storeSettings.storeActive) {
-      return NextResponse.json(
-        {
-          error: 'Tienda no disponible',
-          reason: 'inactive',
-          storeName: storeSettings.storeName
+    // Buscar productos activos con sus relaciones
+    const products = await prisma.product.findMany({
+      where: {
+        userId: store.userId,
+        isActive: true
+      },
+      include: {
+        variants: {
+          where: { isActive: true }
         },
-        { status: 403 }
-      )
-    }
-
-    // Parsear campos JSON
-    const parsedStoreInfo = {
-      ...storeSettings,
-      unifiedSchedule: storeSettings.unifiedSchedule ? (() => {
-        try {
-          // Si ya es un objeto, devolverlo directamente
-          if (typeof storeSettings.unifiedSchedule === 'object') {
-            return storeSettings.unifiedSchedule
+        options: {
+          include: {
+            choices: {
+              where: { isActive: true },
+              orderBy: { order: 'asc' }
+            }
           }
-          // Si es string, parsearlo
-          return JSON.parse(storeSettings.unifiedSchedule as string)
-        } catch (error) {
-          console.error('Error parsing unifiedSchedule:', error)
-          return {}
+        },
+        categoryProducts: {
+          include: {
+            category: true
+          }
         }
-      })() : {}
-    }
+      }
+    })
 
-    // Headers de cache HTTP
-    const response = NextResponse.json(parsedStoreInfo)
+    // Response
+    const response = NextResponse.json({
+      store: {
+        id: store.id,
+        storeName: store.storeName,
+        storeSlug: store.storeSlug,
+        storeActive: store.storeActive,
+        whatsappMainNumber: store.whatsappMainNumber,
+        country: store.country,
+        currency: store.currency,
+        deliveryEnabled: store.deliveryEnabled,
+        cashPaymentEnabled: store.cashPaymentEnabled,
+        bankTransferEnabled: store.bankTransferEnabled
+      },
+      categories,
+      products
+    })
+
     response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
-
     return response
+
   } catch (error) {
-    console.error('Error loading store info:', error)
+    console.error('Error loading store:', error)
     return NextResponse.json(
-      { message: 'Error interno del servidor' },
+      { message: 'Error interno del servidor', error: String(error) },
       { status: 500 }
     )
   }
