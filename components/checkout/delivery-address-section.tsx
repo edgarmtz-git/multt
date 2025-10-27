@@ -353,8 +353,15 @@ export default function DeliveryAddressSection({
                                   <span>⏱️ {zone.estimatedTime} min</span>
                                 )}
                                 {zone.freeDeliveryThreshold && zone.freeDeliveryThreshold > 0 && (
-                                  <span className="text-green-600">
-                                    Gratis en pedidos +${zone.freeDeliveryThreshold}
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    subtotal >= zone.freeDeliveryThreshold 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : 'bg-orange-100 text-orange-700'
+                                  }`}>
+                                    {subtotal >= zone.freeDeliveryThreshold 
+                                      ? '🎉 ¡Gratis!' 
+                                      : `Gratis en +$${zone.freeDeliveryThreshold}`
+                                    }
                                   </span>
                                 )}
                               </div>
@@ -383,6 +390,40 @@ export default function DeliveryAddressSection({
                       {calculatedDeliveryFee === 0 ? 'Gratis' : `$${calculatedDeliveryFee.toFixed(2)}`}
                     </span>
                   </div>
+                  
+                  {/* ✅ MOSTRAR CONDICIÓN DE ENVÍO GRATIS */}
+                  {(() => {
+                    const zone = deliveryZones.find(z => z.id === selectedZone)
+                    if (zone && zone.freeDeliveryThreshold && zone.freeDeliveryThreshold > 0) {
+                      const isFree = subtotal >= zone.freeDeliveryThreshold
+                      const remaining = zone.freeDeliveryThreshold - subtotal
+                      
+                      return (
+                        <div className="p-3 bg-green-100 rounded-md">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-green-900">
+                              {isFree ? '🎉 ¡Envío gratis aplicado!' : 'Umbral para envío gratis:'}
+                            </span>
+                            <span className={`text-sm font-bold ${isFree ? 'text-green-700' : 'text-orange-600'}`}>
+                              ${zone.freeDeliveryThreshold}
+                            </span>
+                          </div>
+                          {!isFree && (
+                            <div className="mt-1 text-xs text-orange-700">
+                              Te faltan ${remaining.toFixed(2)} para envío gratis
+                            </div>
+                          )}
+                          {isFree && (
+                            <div className="mt-1 text-xs text-green-700">
+                              Tu pedido de ${subtotal.toFixed(2)} califica para envío gratis
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+                  
                   {deliveryCalculation.estimatedTime && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-900">Tiempo estimado:</span>

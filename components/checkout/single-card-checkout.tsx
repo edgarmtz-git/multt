@@ -808,7 +808,17 @@ export default function SingleCardCheckout({
                         </div>
                       )}
                       {deliveryCalculation.method === 'zones' && (
-                        <span>💰 <strong>Costo:</strong> Por zonas</span>
+                        <div className="space-y-1">
+                          <span>💰 <strong>Costo:</strong> Por zonas</span>
+                          <div className="text-xs text-green-600 ml-4">
+                            📍 Zona: {deliveryCalculation.zone}
+                            {deliveryCalculation.price === 0 && (
+                              <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                🎉 ¡Envío gratis!
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       )}
                       {deliveryCalculation.method === 'manual' && (
                         <span>💰 <strong>Costo:</strong> Manual ({deliveryCalculation.message || 'El costo se confirmará después del pedido'})</span>
