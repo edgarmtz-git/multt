@@ -108,7 +108,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
           const orderItem = await tx.orderItem.create({
             data: {
               quantity: item.quantity,
-              price: item.price,
+              price: item.totalPrice || (item.price * item.quantity), // Precio total del item (unitario * cantidad)
               variantName: item.variantName || null,
               orderId: order.id,
               productId: item.id,

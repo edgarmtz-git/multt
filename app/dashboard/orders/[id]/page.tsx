@@ -273,8 +273,8 @@ export default async function OrderDetailPage({
                       <p className="text-sm text-muted-foreground mt-1">Cantidad: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} c/u</p>
+                      <p className="font-medium">${item.price.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">${(item.price / item.quantity).toFixed(2)} c/u</p>
                     </div>
                   </div>
                 ))}

@@ -319,8 +319,8 @@ export default function OrderTrackingPage() {
                     )}
                   </div>
                   <div className="text-right ml-4">
-                    <p className="font-medium">${((item.price * item.quantity) + (item.options?.reduce((sum: number, opt: any) => sum + (opt.price || 0), 0) || 0) * item.quantity).toFixed(2)}</p>
-                    <p className="text-sm text-gray-600">{item.quantity}x ${item.price.toFixed(2)}</p>
+                    <p className="font-medium">${item.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">{item.quantity}x ${(item.price / item.quantity).toFixed(2)}</p>
                   </div>
                 </div>
               ))}

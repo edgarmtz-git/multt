@@ -270,7 +270,8 @@ export default function SingleCardCheckout({
       const formattedItems = cartItems.map(item => ({
         id: item.id,
         name: item.name,
-        price: item.price,
+        price: item.totalPrice / item.quantity, // Precio unitario calculado (base + variantes + opciones)
+        totalPrice: item.totalPrice, // Precio total del item
         quantity: item.quantity,
         variantName: item.variantName,
         variantId: item.variantId || null,
