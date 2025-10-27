@@ -23,8 +23,6 @@ export async function GET(
         id: true,
         storeName: true,
         storeSlug: true,
-        email: true,
-        address: true,
         whatsappMainNumber: true,
         country: true,
         currency: true,
@@ -32,17 +30,10 @@ export async function GET(
         useBasePrice: true,
         baseDeliveryPrice: true,
         baseDeliveryThreshold: true,
-        deliveryScheduleEnabled: true,
-        scheduleType: true,
-        advanceDays: true,
-        serviceHours: true,
-        unifiedSchedule: true,
         enableBusinessHours: true,
         storeActive: true,
         passwordProtected: true,
-        accessPassword: true,
-        bannerImage: true,
-        profileImage: true,
+        unifiedSchedule: true,
         // Campos para validar estado
         user: {
           select: {
@@ -100,20 +91,6 @@ export async function GET(
     // Parsear campos JSON
     const parsedStoreInfo = {
       ...storeSettings,
-      address: storeSettings.address ? (() => {
-        try {
-          return JSON.parse(storeSettings.address as string)
-        } catch {
-          return null
-        }
-      })() : null,
-      serviceHours: storeSettings.serviceHours ? (() => {
-        try {
-          return JSON.parse(storeSettings.serviceHours as string)
-        } catch {
-          return {}
-        }
-      })() : {},
       unifiedSchedule: storeSettings.unifiedSchedule ? (() => {
         try {
           // Si ya es un objeto, devolverlo directamente
